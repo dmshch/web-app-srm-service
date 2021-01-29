@@ -1,0 +1,15 @@
+*.pyc
+*.*~
+/.git
+/bin
+/include
+/lib*
+/.pytest_cache
+/__pycache__
+*.cfg
+test_classes_receivers.py
+static/css/
+static/js/
+*.db
+run_script.sh
+how_to_run.txt

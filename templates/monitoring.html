@@ -1,0 +1,47 @@
+<div class="container-fluid">
+	<div class="row">
+	
+		<div class="col-sm-8">
+			<table class="table table-bordered table-sm">
+				<thead class="thead-light">
+					<tr>
+						<th> IP </th>
+						<th> Model </th>
+						<th> Satellite </th>
+						<th> Port </th>
+						<th> C/N (dB) </th>
+						<th> Eb/NO(dB) </th>
+						<th> Link Margin (dB) </th>
+						<th> Time of update </th>		
+					</tr>
+				</thead>
+			{% for value in final_list %}
+				<tbody>
+					{% if value.color == "white" %}
+					<tr>
+					{% elif value.color == "green" %}
+					<tr class="table-success">
+					{% elif value.color == "red" %}
+					<tr class="table-danger">
+					{% elif value.color == "yellow" %}
+					<tr class="table-warning">
+					{% elif value.color == "gray" %}
+					<tr class="table-secondary">
+					{% endif %}
+						<td> {{ value.ip}} </td>
+						<td> {{ value.model }} </td>
+						<td> {{ value.satellite  }} </td>
+						<td> {{ value.port }} </td>
+						<td> {{ value.c_n }} </td>
+						<td> {{ value.eb_no }} </td>
+						<td> {{ value.l_m }} </td>	
+						<td> {{ value.time }} </td>			
+					</tr>
+				</tbody>
+			{% endfor %}
+			</table>
+		</div>
+		<div class="col-sm-2"></div>
+
+	</div>
+</div>

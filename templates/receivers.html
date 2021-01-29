@@ -1,0 +1,134 @@
+<div class="container-fluid">
+	
+	{% with messages = get_flashed_messages() %}
+		{% if messages %}
+			{% for message in messages %}
+			  <p class="text-info font-weight-bold">{{ message }}</p>
+			{% endfor %}
+		{% endif %}
+	{% endwith %}
+	
+	<div class="row">
+		<div class="col-sm-12">
+			<form class="form-inline" action="/add" method="post">
+				<div class="form-group">
+					<label for="ip" class="font-weight-bold">IP:</label>
+					<input type="text" class="form-control" id="ip" placeholder="Enter IPv4 address" name="ip">
+				</div>
+			    <div class="form-group">
+					<label for="model" class="font-weight-bold">Model:</label>
+					<select class="form-control" id="model" name="model">
+						<option>proview2962</option>
+						<option>proview7000</option>
+						<option>proview7100s</option>
+						<option>proview7100mold</option>
+						<option>proview7100mnew</option>
+						<option>proview8130</option>
+					</select>
+			    </div>
+			    <div class="form-group">
+					<label for="satellite" class="font-weight-bold">Satellite:</label>
+					<select class="form-control" id="satellite" name="satellite">
+						<option>0.8-v-high</option>
+						<option>4.8-h-high</option>
+						<option>4.8-v-high</option>
+						<option>4.8-v-low</option>
+						<option>9-v-high</option>
+						<option>9-h-high</option>
+						<option>13-v-high</option>
+						<option>13-h-high</option>
+						<option>13-v-low</option>
+						<option>13-h-low</option>
+						<option>15-v-low</option>
+						<option>15-h-low</option>
+						<option>36-r</option>
+						<option>36-l</option>
+						<option>56-r</option>
+						<option>75-v-low</option>
+						<option>75-v-high</option>
+						<option>75-h-low</option>
+						<option>85-v-high</option>
+						<option>85-h-high</option>
+						<option>90-l</option>
+						<option>90-v-high</option>
+						<option>90-h-low</option>
+					</select>
+			    </div>
+			    <div class="form-group">
+					<label for="port" class="font-weight-bold">Port:</label>
+					<select class="form-control" id="port" name="port">
+						<option>default</option>
+						<option>1</option>
+						<option>2</option>
+						<option>3</option>
+						<option>4</option>						
+					</select>
+			    </div>
+				<div class="form-group">
+					<label for="login" class="font-weight-bold">Login:</label>
+					<input type="text" class="form-control" id="login" placeholder="Don't enter if default" name="login">
+				</div>
+				<div class="form-group">
+					<label for="pwd" class="font-weight-bold">Password:</label>
+					<input type="password" class="form-control" id="pwd" placeholder="Don't enter if default" name="password">
+				</div>	
+			    <div class="form-group">
+					<label for="state" class="font-weight-bold">State:</label>
+					<select class="form-control" id="state" name="state">
+						<option>used</option>
+						<option>don't used</option>
+					</select>
+			    </div>				
+			    <div class="form-group">
+					<button type="submit" class="btn btn-primary">Add</button>
+			    </div>
+			</form>
+		</div>
+		
+	</div>
+	<br>
+	<div class="row">
+	
+		<div class="col-sm-8">
+			<table class="table table-bordered table-sm">
+				<thead class="thead-light">
+					<tr>
+						<th> IP </th>
+						<th> Model </th>
+						<th> Satellite </th>
+						<th> Port </th>
+						<th> Login </th>
+						<th> Password </th>
+						<th> State </th>
+					</tr>
+				</thead>
+			{% for value in list_of_receivers %}
+				<tbody>
+					<tr>
+					
+						<th scope="row"> {{ value.ip}} </th>
+						<td> {{ value.model }} </td>
+						<td> {{ value.satellite  }} </td>
+						<td> {{ value.port }} </td>
+						<td> **** </td>
+						<td> **** </td>
+						{% if value.state == 1 %}
+						<td> used </td>
+						{% elif value.state == 0 %}
+						<td> don't used </td>
+						{% endif %}
+						<td>
+							<p class="font-weight-bold"><a href="/edit/{{ value.ip}}/{{ value.port }}/get" class="text-warning">Edit</a></p>					
+						</td>
+						<td>	
+							<p class="font-weight-bold"><a href="/edit/{{ value.ip}}/{{ value.port }}/delete" class="text-danger" onClick="return window.confirm('Delete receiver with ip={{ value.ip}} and port={{ value.port }}?');">Delete</a></p>		
+						</td>
+					</tr>
+				</tbody>
+			{% endfor %}
+			</table>
+		</div>
+		<div class="col-sm-2"></div>
+
+	</div>
+</div>

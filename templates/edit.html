@@ -1,0 +1,84 @@
+<div class="container-fluid">
+	
+	{% with messages = get_flashed_messages() %}
+		{% if messages %}
+			{% for message in messages %}
+			  <p class="text-info font-weight-bold">{{ message }}</p>
+			{% endfor %}
+		{% endif %}
+	{% endwith %}
+	
+	<div class="row">
+		<div class="col-sm-12">
+			<form class="form-inline" action="/edit/{{ receiver['ip']}}/{{ receiver['port'] }}/update" method="post">
+				<div class="form-group">
+					<label for="ip" class="font-weight-bold">IP:</label>
+					<input type="text" class="form-control" id="ip" placeholder="{{ receiver['ip']}}" name="ip" readonly>
+				</div>
+			    <div class="form-group">
+					<label for="model" class="font-weight-bold">Model:</label>
+					<select class="form-control" id="model" name="model">
+						<option>proview2962</option>
+						<option>proview7000</option>
+						<option>proview7100s</option>
+						<option>proview7100mold</option>
+						<option>proview7100mnew</option>
+						<option>proview8130</option>
+					</select>
+			    </div>
+			    <div class="form-group">
+					<label for="satellite" class="font-weight-bold">Satellite:</label>
+					<select class="form-control" id="satellite" name="satellite">
+						<option>0.8-v-high</option>
+						<option>4.8-h-high</option>
+						<option>4.8-v-high</option>
+						<option>4.8-v-low</option>
+						<option>9-v-high</option>
+						<option>9-h-high</option>
+						<option>13-v-high</option>
+						<option>13-h-high</option>
+						<option>13-v-low</option>
+						<option>13-h-low</option>
+						<option>15-v-low</option>
+						<option>15-h-low</option>
+						<option>36-r</option>
+						<option>36-l</option>
+						<option>56-r</option>
+						<option>75-v-low</option>
+						<option>75-v-high</option>
+						<option>75-h-low</option>
+						<option>85-v-high</option>
+						<option>85-h-high</option>
+						<option>90-l</option>
+						<option>90-v-high</option>
+						<option>90-h-low</option>
+					</select>
+			    </div>
+			    <div class="form-group">
+					<label for="port" class="font-weight-bold">Port:</label>
+					<input type="text" class="form-control" id="port" placeholder="{{ receiver['port']}}" name="port" readonly>
+			    </div>
+				<div class="form-group">
+					<label for="login" class="font-weight-bold">Login:</label>
+					<input type="text" class="form-control" id="login" placeholder="Don't enter if default" name="login">
+				</div>
+				<div class="form-group">
+					<label for="pwd" class="font-weight-bold">Password:</label>
+					<input type="password" class="form-control" id="pwd" placeholder="Don't enter if default" name="password">
+				</div>	
+			    <div class="form-group">
+					<label for="state" class="font-weight-bold">State:</label>
+					<select class="form-control" id="state" name="state">
+						<option>used</option>
+						<option>don't used</option>
+					</select>
+			    </div>				
+			    <div class="form-group">
+					<button type="submit" class="btn btn-primary" onClick="return window.confirm('Update receiver with ip={{ receiver['ip']}} and port={{ receiver['port']}}?');">Update</button>
+			    </div>
+			</form>
+		</div>
+		
+	</div>
+	
+</div>
