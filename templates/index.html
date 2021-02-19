@@ -1,183 +1,146 @@
 <!DOCTYPE HTML>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Receivers monitoring</title>
+<head>
+	<meta charset="utf-8">
+	<title>Receivers monitoring</title>
 	<link rel="icon" href="/static/favicon.png" type="image/png">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body> 
+<header>
+	<nav>			
+		<table>	
+			<tbody>
+				<tr>
+				
+					<td>
+						<a href="/">
+							<img src="/static/image/media.png"" alt="logo" style="width:40px;">
+						</a>						
+					</td>
+					
+					<td valign=top>
+						<ul>
+							<b>Menu:</b>
+							<li type="circle"><a href="/">Main</a></li>	
+							<li type="circle"><a href="/satellite/monitoring">Monitoring</a></li>	
+							<li type="circle"><a href="/receivers">Database editing</a></li>	
+							Locat time: {{time}}
+						</ul>
+					</td>
+									
+					<!-- Dropdown -->
+					<td valign=top>
+						<ul>
+							<b>0.8&deg;</b>
+							<li><a href="/satellite/0.8-v-high">0.8-v-high</a></li>					
+						</ul>
+					</td>
+				
+				<!-- Dropdown -->
+					<td valign=top>
+						<ul>
+							<b>4.8&deg;</b>
+							<li><a href="/satellite/4.8-h-high">4.8-h-high</a></li>
+							<li><a href="/satellite/4.8-v-high">4.8-v-high</a></li>
+							<li><a href="/satellite/4.8-v-low">4.8-v-low</a></li>	
+						</ul>
+					</td>
+				
+				<!-- Dropdown -->
+					<td valign=top>
+						<ul>
+							<b>9&deg;</b>
+							<li><a href="/satellite/9-v-high">9-v-high</a></li>
+							<li><a href="/satellite/9-h-high">9-h-high</a></li>
+						</ul>					
+					</td>
+				
+				<!-- Dropdown -->
+					<td valign=top>
+						<ul>
+							<b>13&deg;</b>
+							<li><a href="/satellite/13-v-high">13-v-high</a></li>
+							<li><a href="/satellite/13-h-high">13-h-high</a></li>
+							<li><a href="/satellite/13-v-low">13-v-low</a></li>
+							<li><a href="/satellite/13-h-low">13-h-low</a></li>
+						</ul>
+					</td>
 
-	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
-	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
-	
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-		
-  </head>
-  <body> 
-    <header>
-      <nav class="navbar navbar-expand-sm bg-light navbar-light">
-		<div class="container-fluid">
-
-			<a class="navbar-brand" href="/">
-				<img src="/static/image/media.png"" alt="logo" style="width:40px;">
-			</a>
+				<!-- Dropdown -->
+					<td valign=top>
+						<ul>
+							<b>15&deg;</b>
+							<li><a href="/satellite/15-v-low">15-v-low</a></li>
+							<li><a href="/satellite/15-h-low">15-h-low</a></li>
+						</ul>
+					</td>
+				
+				<!-- Dropdown -->
+					<td valign=top>
+						<ul>
+							<b>36&deg;</b>
+							<li><a href="/satellite/36-r">36-r</a></li>
+							<li><a href="/satellite/36-l">36-l</a></li>
+						</ul>
+					</td>
+				
+				<!-- Dropdown -->
+					<td valign=top>
+						<ul>
+							<b>56&deg;</b>
+							<li><a href="/satellite/56-r">56-r</a></li>
+						</ul>
+					</td>				
+				
+				<!-- Dropdown -->
+					<td valign=top>
+						<ul>
+							<b>75&deg;</b>
+							<li><a href="/satellite/75-v-low">75-v-low</a></li>
+							<li><a href="/satellite/75-v-high">75-v-high</a></li>
+							<li><a href="/satellite/75-h-low">75-h-low</a></li>
+						</ul>
+					</td>
+				
+				<!-- Dropdown -->
+					<td valign=top>
+						<ul>
+							<b>85&deg;</b>
+							<li><a href="/satellite/85-v-high">85-v-high</a></li>
+							<li><a href="/satellite/85-h-high">85-h-high</a></li>
+						</ul>
+					</td>
+				
+				<!-- Dropdown -->
+					<td valign=top>
+						<ul>
+							<b>90&deg;</b>
+							<li><a href="/satellite/90-l">90-l</a></li>
+							<li><a href="/satellite/90-v-high">90-v-high</a></li>
+							<li><a href="/satellite/90-h-low">90-h-low</a></li>
+						</ul>
+					</td>
+				
+				<!-- Dropdown -->
+					<td valign=top>
+						<ul>
+							<b>Settings:</b>
+							<li type="circle"><a href="/settings/global">Global</a></li>
+							<li type="circle"><a href="/settings/users">Users</a></li>
+							<li type="circle"><a href="/settings/receivers">Receivers</a></li>
+						</ul>
+					</td>
+					
+				</tr>
+			</tbody>
+		</table>		
 			
-			<ul class="navbar-nav">
-			
-				<li class="nav-item">
-					<a class="nav-link" href="/">Main</a>
-				</li>
-				
-				<li class="nav-item">
-					<a class="nav-link" href="/satellite/monitoring">Monitoring</a>
-				</li>
-				
-				<!-- Dropdown -->
-				<li class="nav-item dropdown">
-				  <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-					0.8&deg;
-				  </a>
-				  <div class="dropdown-menu">
-					<a class="dropdown-item" href="/satellite/0.8-v-high">0.8-v-high</a>
-				  </div>
-				</li>					
-				
-				<!-- Dropdown -->
-				<li class="nav-item dropdown">
-				  <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-					4.8&deg;
-				  </a>
-				  <div class="dropdown-menu">
-					<a class="dropdown-item" href="/satellite/4.8-h-high">4.8-h-high</a>
-					<a class="dropdown-item" href="/satellite/4.8-v-high">4.8-v-high</a>
-					<a class="dropdown-item" href="/satellite/4.8-v-low">4.8-v-low</a>
-				  </div>
-				</li>	
-				
-				<!-- Dropdown -->
-				<li class="nav-item dropdown">
-				  <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-					9&deg;
-				  </a>
-				  <div class="dropdown-menu">
-					<a class="dropdown-item" href="/satellite/9-v-high">9-v-high</a>
-					<a class="dropdown-item" href="/satellite/9-h-high">9-h-high</a>
-				  </div>
-				</li>					
-
-				<!-- Dropdown -->
-				<li class="nav-item dropdown">
-				  <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-					13&deg;
-				  </a>
-				  <div class="dropdown-menu">
-					<a class="dropdown-item" href="/satellite/13-v-high">13-v-high</a>
-					<a class="dropdown-item" href="/satellite/13-h-high">13-h-high</a>
-					<a class="dropdown-item" href="/satellite/13-v-low">13-v-low</a>
-					<a class="dropdown-item" href="/satellite/13-h-low">13-h-low</a>
-				  </div>
-				</li>	
-
-				<!-- Dropdown -->
-				<li class="nav-item dropdown">
-				  <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-					15&deg;
-				  </a>
-				  <div class="dropdown-menu">
-					<a class="dropdown-item" href="/satellite/15-v-low">15-v-low</a>
-					<a class="dropdown-item" href="/satellite/15-h-low">15-h-low</a>
-				  </div>
-				</li>					
-				
-				<!-- Dropdown -->
-				<li class="nav-item dropdown">
-				  <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-					36&deg;
-				  </a>
-				  <div class="dropdown-menu">
-					<a class="dropdown-item" href="/satellite/36-r">36-r</a>
-					<a class="dropdown-item" href="/satellite/36-l">36-l</a>
-				  </div>
-				</li>					
-				
-				<!-- Dropdown -->
-				<li class="nav-item dropdown">
-				  <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-					56&deg;
-				  </a>
-				  <div class="dropdown-menu">
-					<a class="dropdown-item" href="/satellite/56-r">56-r</a>
-				  </div>
-				</li>				
-				
-				<!-- Dropdown -->
-				<li class="nav-item dropdown">
-				  <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-					75&deg;
-				  </a>
-				  <div class="dropdown-menu">
-					<a class="dropdown-item" href="/satellite/75-v-low">75-v-low</a>
-					<a class="dropdown-item" href="/satellite/75-v-high">75-v-high</a>
-					<a class="dropdown-item" href="/satellite/75-h-low">75-h-low</a>
-				  </div>
-				</li>	
-				
-				<!-- Dropdown -->
-				<li class="nav-item dropdown">
-				  <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-					85&deg;
-				  </a>
-				  <div class="dropdown-menu">
-					<a class="dropdown-item" href="/satellite/85-v-high">85-v-high</a>
-					<a class="dropdown-item" href="/satellite/85-h-high">85-h-high</a>
-				  </div>
-				</li>				
-				
-				<!-- Dropdown -->
-				<li class="nav-item dropdown">
-				  <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-					90&deg; 
-				  </a>
-				  <div class="dropdown-menu">
-					<a class="dropdown-item" href="/satellite/90-l">90-l</a>
-					<a class="dropdown-item" href="/satellite/90-v-high">90-v-high</a>
-					<a class="dropdown-item" href="/satellite/90-h-low">90-h-low</a>
-				  </div>
-				</li>
-
-				<li class="nav-item">
-					<a class="nav-link" href="/receivers">Database editing</a>
-				</li>
-				
-				<!--li class="nav-item">
-					<a class="nav-link" href="/settings">Settings</a>
-				</li-->
-
-				<!-- Dropdown -->
-				<li class="nav-item dropdown">
-				  <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
-					Settings 
-				  </a>
-				  <div class="dropdown-menu">
-					<a class="dropdown-item" href="/settings/global">Global</a>
-					<a class="dropdown-item" href="/settings/users">Users</a>
-					<a class="dropdown-item" href="/settings/receivers">Receivers</a>
-				  </div>
-				</li>
-				
-			</ul>
-			<ul class="nav navbar-nav navbar-right">
-				<span class="navbar-text">
-					Locat time: {{time}}
-				</span>
-			</ul>
-		</div>
-    </nav>
-    </header>
-    <main>
-      <section>
-        <h3>{{name}}</h3>
-        <!--  -->
+</nav>
+</header>
+<main>
+<section>
+    <h3>{{name}}</h3>
+    <!-- -->
 		{% if name == 'Main' %}
 		{% include 'main.html' %}
 		{% elif name == 'Receivers' %}
@@ -189,14 +152,14 @@
 		{% else %}
 		{% include 'monitoring.html' %}
 		{% endif %}
-      </section>
-    </main>
-    <aside>
-      <!-- Sidebar -->
-    </aside>
-    <footer>
+   </section>
+  </main>
+  <aside>
+   <!-- Sidebar -->
+  </aside>
+  <footer>
 		<!--<img src="/static/image/media.png" alt="antenna"> -->
-      <!-- Footer -->
-    </footer>
-  </body>
+   <!-- Footer -->
+  </footer>
+ </body>
 </html>
