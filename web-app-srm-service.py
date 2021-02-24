@@ -5,8 +5,8 @@ from flask import request
 from flask import redirect, url_for
 from flask import render_template
 from flask import flash
+from web import dbsqlalch
 import datetime
-import json
 
 app = Flask(__name__)
 
@@ -17,25 +17,22 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 @app.route('/')
 def index():
-    time = datetime.datetime.now().strftime("%H:%M")
-    return render_template('index.html', name='Main', time=time)
+    return render_template('index.html', name='Main', time=get_time())
 
 @app.route('/satellite/<satellite>')
 def monitoring(satellite):
     name = satellite
-    time = datetime.datetime.now().strftime("%H:%M")
     if name == "monitoring":
-        final_list = list_of_objects
+        final_list = dbsqlalch.get_data_receivers()
         name = "Monitoring"
     else:
-        final_list = [i for i in list_of_objects if i.satellite == name]
-    return render_template('index.html', name = name, time=time, final_list = final_list)
+        final_list = dbsqlalch.get_data_receivers(name)
+    return render_template('index.html', name= name, time= get_time(), final_list= final_list)
     
 @app.route('/receivers', methods=['POST', 'GET'])
 def receivers():
-    time = datetime.datetime.now().strftime("%H:%M")
     list_of_receivers = get_objects.get_objects_receivers("all")
-    return render_template('index.html', name='Receivers', time=time, list_of_receivers=list_of_receivers)
+    return render_template('index.html', name='Receivers', time=get_time(), list_of_receivers=list_of_receivers)
 
 @app.route('/add', methods=['POST'])
 def add():
@@ -50,12 +47,11 @@ def add():
 @app.route('/edit/<ip>/<port>/<action>',  methods=['POST', 'GET'])
 def edit(ip, port, action):
     status = ""
-    time = datetime.datetime.now().strftime("%H:%M")
 
     if action == "get":
         # receiver is dict -> keys: ip, model, satellite, login, password, port, state
         receiver = edit_db.select_receiver_for_edit(ip, port)
-        return render_template('index.html', name='Edit', time=time, receiver=receiver)
+        return render_template('index.html', name='Edit', time=get_time(), receiver=receiver)
 
     if action == "update":
         # update db
@@ -86,7 +82,6 @@ def edit(ip, port, action):
 
 @app.route('/settings/<path>', methods=['POST', 'GET'])
 def settings(path):
-    time = datetime.datetime.now().strftime("%H:%M")
     status = ""
     values = dict()
     if path == "global":
@@ -106,5 +101,7 @@ def settings(path):
             pass
     print(values)
     flash(status)
-    return render_template('index.html', name='Settings', time=time, path=path, subname=path.capitalize(), values=values)
+    return render_template('index.html', name='Settings', time=get_time(), path=path, subname=path.capitalize(), values=values)
 
+def get_time():
+    return datetime.datetime.now().strftime("%H:%M")

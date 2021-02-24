@@ -1,9 +1,5 @@
-<div class="container-fluid">
-	<div class="row">
-	
-		<div class="col-sm-8">
-			<table class="table table-bordered table-sm">
-				<thead class="thead-light">
+			<table>
+				<thead>
 					<tr>
 						<th> IP </th>
 						<th> Model </th>
@@ -17,18 +13,18 @@
 				</thead>
 			{% for value in final_list %}
 				<tbody>
-					{% if value.color == "white" %}
-					<tr>
-					{% elif value.color == "green" %}
-					<tr class="table-success">
+					{% if value.color == "green" %}
+					<tr bgcolor="#98fb98">
 					{% elif value.color == "red" %}
-					<tr class="table-danger">
+					<tr bgcolor="#f08080">
 					{% elif value.color == "yellow" %}
-					<tr class="table-warning">
+					<tr bgcolor="#ffd700">
 					{% elif value.color == "gray" %}
-					<tr class="table-secondary">
+					<tr bgcolor="#c0c0c0">
+					{% else %}
+					<tr>
 					{% endif %}
-						<td> {{ value.ip}} </td>
+						<td> {{ value.ip }} </td>
 						<td> {{ value.model }} </td>
 						<td> {{ value.satellite  }} </td>
 						<td> {{ value.port }} </td>
@@ -40,8 +36,3 @@
 				</tbody>
 			{% endfor %}
 			</table>
-		</div>
-		<div class="col-sm-2"></div>
-
-	</div>
-</div>
