@@ -1,34 +1,62 @@
-<div class="container-fluid">
-	
 	{% with messages = get_flashed_messages() %}
 		{% if messages %}
 			{% for message in messages %}
-			  <p class="text-info font-weight-bold">{{ message }}</p>
+			  <p>{{ message }}</p>
 			{% endfor %}
 		{% endif %}
 	{% endwith %}
 	
-	<div class="row">
-		<div class="col-sm-12">
-			<form class="form-inline" action="/edit/{{ receiver['ip']}}/{{ receiver['port'] }}/update" method="post">
-				<div class="form-group">
-					<label for="ip" class="font-weight-bold">IP:</label>
-					<input type="text" class="form-control" id="ip" placeholder="{{ receiver['ip']}}" name="ip" readonly>
-				</div>
-			    <div class="form-group">
-					<label for="model" class="font-weight-bold">Model:</label>
-					<select class="form-control" id="model" name="model">
-						<option>proview2962</option>
-						<option>proview7000</option>
-						<option>proview7100s</option>
-						<option>proview7100mold</option>
-						<option>proview7100mnew</option>
-						<option>proview8130</option>
+			<form action="/edit/{{ receiver['ip']}}/{{ receiver['port'] }}/update" method="post">
+
+					<label for="ip"><b>IP: {{ receiver['ip']}}</b></label>
+					<!--input type="text" id="ip" placeholder="{{ receiver['ip']}}" name="ip" readonly-->
+
+					</br></br>
+
+					<label for="port"><b>Port: {{ receiver['port']}}</b></label>
+					<!--input type="text" id="port" placeholder="{{ receiver['port']}}" name="port" readonly-->
+
+					</br></br>
+					
+					<script>
+						var getFunc = function(id, value) {
+							if (value == 'True') value = 'used';
+							if (value == 'False') value = "don't used";
+							let items = document.getElementById(id).querySelectorAll('option');
+							//console.log("items = ", items);
+							//console.log("items.length = ", items.length);
+							console.log(value)
+							var count;
+							for (count = 0; count < items.length; count++) {
+								item = items.item(count);
+								//console.log("item = ", item, typeof(item), typeof(item.innerHTML) );
+								if (item.innerHTML == value) {
+									//console.log("done");
+									return count;
+									}
+								}
+							};
+						window.addEventListener('load', function() { document.getElementById('model').querySelectorAll('option')[getFunc('model','{{ receiver['model']}}')].selected = true; });
+						window.addEventListener('load', function() { document.getElementById('satellite').querySelectorAll('option')[getFunc('satellite','{{ receiver['satellite']}}')].selected = true; });
+						window.addEventListener('load', function() { document.getElementById('state').querySelectorAll('option')[getFunc('state','{{ receiver['state']}}')].selected = true; });						
+					</script>
+
+					<label for="model" ><b>Model:</b></label>
+					<select id="model" name="model">
+						<!--option selected disabled>Select model</option -->	
+						<option id="proview2962">proview2962</option>
+						<option id="proview7000">proview7000</option>
+						<option id="proview7100s">proview7100s</option>
+						<option id="proview7100mold">proview7100mold</option>
+						<option id="proview7100mnew">proview7100mnew</option>
+						<option id="proview8130">proview8130</option>
 					</select>
-			    </div>
-			    <div class="form-group">
-					<label for="satellite" class="font-weight-bold">Satellite:</label>
-					<select class="form-control" id="satellite" name="satellite">
+					
+					</br></br>
+					
+					<label for="satellite"><b>Satellite:</b></label>
+					<select id="satellite" name="satellite">
+						<option selected disabled>Select satellite</option>
 						<option>0.8-v-high</option>
 						<option>4.8-h-high</option>
 						<option>4.8-v-high</option>
@@ -53,32 +81,29 @@
 						<option>90-v-high</option>
 						<option>90-h-low</option>
 					</select>
-			    </div>
-			    <div class="form-group">
-					<label for="port" class="font-weight-bold">Port:</label>
-					<input type="text" class="form-control" id="port" placeholder="{{ receiver['port']}}" name="port" readonly>
-			    </div>
-				<div class="form-group">
-					<label for="login" class="font-weight-bold">Login:</label>
-					<input type="text" class="form-control" id="login" placeholder="Don't enter if default" name="login">
-				</div>
-				<div class="form-group">
-					<label for="pwd" class="font-weight-bold">Password:</label>
-					<input type="password" class="form-control" id="pwd" placeholder="Don't enter if default" name="password">
-				</div>	
-			    <div class="form-group">
-					<label for="state" class="font-weight-bold">State:</label>
-					<select class="form-control" id="state" name="state">
+					
+					</br></br>
+					
+					<label for="login"><b>Login:</b></label>
+					<input type="text" id="login" placeholder="Don't enter if default" name="login">
+					
+					</br></br>
+					
+					<label for="pwd"><b>Password:</b></label>
+					<input type="password" id="pwd" placeholder="Don't enter if default" name="password">
+					
+					</br></br>
+					
+					<label for="state"><b>State:</b></label>
+					<select id="state" name="state">
+						<option selected disabled>Select state</option>
 						<option>used</option>
 						<option>don't used</option>
 					</select>
-			    </div>				
-			    <div class="form-group">
-					<button type="submit" class="btn btn-primary" onClick="return window.confirm('Update receiver with ip={{ receiver['ip']}} and port={{ receiver['port']}}?');">Update</button>
-			    </div>
+					
+					</br></br>
+					
+					<button type="submit" onClick="return window.confirm('Update receiver with ip={{ receiver['ip']}} and port={{ receiver['port']}}?');">Update</button>
+					<button type="cancel" onclick="window.location='/receivers';return false;">Cancel</button>
+
 			</form>
-		</div>
-		
-	</div>
-	
-</div>

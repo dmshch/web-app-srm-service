@@ -23,25 +23,21 @@ def index():
 def monitoring(satellite):
     name = satellite
     if name == "monitoring":
-        final_list = dbsqlalch.get_data_receivers()
+        final_list = dbsqlalch.get_data_receivers(state = True)
         name = "Monitoring"
     else:
-        final_list = dbsqlalch.get_data_receivers(name)
+        final_list = dbsqlalch.get_data_receivers(satellite = name, state = True)
     return render_template('index.html', name= name, time= get_time(), final_list= final_list)
     
 @app.route('/receivers', methods=['POST', 'GET'])
 def receivers():
-    list_of_receivers = get_objects.get_objects_receivers("all")
-    return render_template('index.html', name='Receivers', time=get_time(), list_of_receivers=list_of_receivers)
+    final_list = dbsqlalch.get_data_receivers()
+    return render_template('index.html', name='Receivers', time=get_time(), list_of_receivers=final_list)
 
 @app.route('/add', methods=['POST'])
 def add():
-    status = add_data_in_db.add_data(request.form['ip'], request.form['model'], request.form['satellite'], request.form['login'], request.form['password'], request.form['port'], request.form['state'])
+    status = dbsqlalch.add(request.form['ip'], request.form['model'], request.form['satellite'], request.form['login'], request.form['password'], request.form['port'], request.form['state'])
     flash(status)
-    # add to the active list of receivers
-    if status == "IP address and port have been added" and request.form['state'] == "used":
-        obj = get_objects.return_object(request.form['ip'], request.form['model'], request.form['satellite'], request.form['login'], request.form['password'], request.form['port'], 1)
-        list_of_objects.append(obj)
     return redirect(url_for('receivers'))
 
 @app.route('/edit/<ip>/<port>/<action>',  methods=['POST', 'GET'])
@@ -50,34 +46,21 @@ def edit(ip, port, action):
 
     if action == "get":
         # receiver is dict -> keys: ip, model, satellite, login, password, port, state
-        receiver = edit_db.select_receiver_for_edit(ip, port)
+        status, receiver = dbsqlalch.get(ip, port)
         return render_template('index.html', name='Edit', time=get_time(), receiver=receiver)
 
     if action == "update":
-        # update db
-        status = edit_db.update_receiver(ip, request.form['model'], request.form['satellite'], request.form['login'], request.form['password'], port, request.form['state'])
-        # check used or not. if used -> check in list_of_objects -> if exist -> remove, make obj and add-> if not -> make obj and add
-        if request.form['state'] == "used":
-            for obj in list_of_objects:
-                if obj.ip == ip and obj.port == port:
-                    list_of_objects.remove(obj)
-            obj = get_objects.return_object(ip, request.form['model'], request.form['satellite'], request.form['login'], request.form['password'], port, 1)
-            list_of_objects.append(obj)
-        # if don't used -> check in list_of_objects -> if exist -> remove obj from list_of_objects
-        elif request.form['state'] == "don't used":
-            for obj in list_of_objects:
-                if obj.ip == ip and obj.port == port:
-                    list_of_objects.remove(obj)
+        if 'model' not in request.form or 'satellite' not in request.form or 'state' not in request.form:
+            flash("Missing required value.")
+            status, receiver = dbsqlalch.get(ip, port)
+            return render_template('index.html', name='Edit', time=get_time(), receiver=receiver)
+        status = dbsqlalch.update(ip, request.form['model'], request.form['satellite'], request.form['login'], request.form['password'], port, request.form['state'])
         flash(status)
         return redirect(url_for('receivers'))
 
     if action == "delete":
-        status = delete_data_from_db.delete_data(ip, port)
+        status = dbsqlalch.delete(ip, port)
         flash(status)
-        if status == "IP address and port have been removed":
-            for obj in list_of_objects:
-                if obj.ip == ip and obj.port == port:
-                    list_of_objects.remove(obj)
         return redirect(url_for('receivers'))
 
 @app.route('/settings/<path>', methods=['POST', 'GET'])
@@ -86,21 +69,22 @@ def settings(path):
     values = dict()
     if path == "global":
         if request.method == 'GET':
-            values = edit_settings.get_global_settings()
+            values = dbsqlalch.get_settings()
         if request.method == 'POST':
-            status = edit_settings.set_global_settings(request.form['time'], request.form['CN'], request.form['ebno'])
+            status = dbsqlalch.set_settings(c_n =  request.form['CN'], eb_no = request.form['ebno'])
     elif path == "users":
         if request.method == 'GET':
-            values = edit_settings.get_users_settings()
+            values = dbsqlalch.get_user_authentication()
         if request.method == 'POST':
-            status = edit_settings.set_users_settings(request.form['adminPassword'], request.form['monitorPassword'])
+            status = dbsqlalch.set_user_authentication(request.form.get('user_select'), request.form['password'])
     elif path == "receivers":
         if request.method == 'GET':
-            values = edit_settings.get_receivers_settings()
+            values = dbsqlalch.get_receiver_authentication()
         if request.method == 'POST':
-            pass
-    print(values)
+            status = dbsqlalch.set_receiver_authentication(request.form.get('receiver_select'), request.form['login'] ,request.form['password'])
     flash(status)
+    if request.method == 'POST':
+        return redirect('/settings/' + path)
     return render_template('index.html', name='Settings', time=get_time(), path=path, subname=path.capitalize(), values=values)
 
 def get_time():

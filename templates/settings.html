@@ -1,89 +1,104 @@
 <h4>{{subname}}</h4>
-<div class="container-fluid">
 	
 	{% with messages = get_flashed_messages() %}
 		{% if messages %}
 			{% for message in messages %}
-			  <p class="text-info font-weight-bold">{{ message }}</p>
+			  <p>{{ message }}</p>
 			{% endfor %}
 		{% endif %}
 	{% endwith %}
 	
-	<div class="row">
-		<div class="col-sm-12">
-		
 			<form action="" method="post">
 			
 				{% if path == "global" %}
 				
-				<h6>Period of update:</h6>
-				<div class="form-group row">
-					<div class="col-sm-1">
-						<input type="text" class="form-control" id="time" placeholder="{{ values['period'] }}" name="time">
-					</div>	
-					<label for="time" class="col-form-label"> - reception parameters update period (integer value).</label>
-				</div>
-				<h6>Boundary values for C/N and Eb/NO:</h6>
-				<div class="form-group row">
-					<div class="col-sm-1">
-						<input type="text" class="form-control" id="CN" placeholder="{{ values['c_n_boundary'] }}" name="CN">
-					</div>
-					<label for="CN" class="col-form-label"> - for C/N (dB, integer or decimal value)</label>
-				</div>
-				<div class="form-group row">
-					<div class="col-sm-1">
-						<input type="text" class="form-control" id="ebno" placeholder="{{ values['eb_no_boundary'] }}" name="ebno">
-					</div>
-					<label for="ebno" class="col-form-label"> - for Eb/NO(dB, integer or decimal value)</label>
-				</div>					
+				<h4>Period of update:</h4>
+				<input type="text"  id="time" placeholder="{{ values['period'] }}" name="time" disabled>
+				<label for="time"> - reception parameters update period (integer value).</label>
+					
+				<h4>Boundary values for C/N and Eb/NO:</h4>
+				<input type="text" id="CN" placeholder="{{ values['c_n_boundary'] }}" name="CN">
+				<label for="CN"  > - for C/N (dB, integer or decimal value)</label>
+				<br>
+				<br>
+				<input type="text" id="ebno" placeholder="{{ values['eb_no_boundary'] }}" name="ebno">
+				<label for="ebno"> - for Eb/NO(dB, integer or decimal value)</label>
 				
 				{% elif path == "users" %}
 				
-				<h6>Users passwords:</h6>
-				<div class="form-group row">
-					<div class="col-sm-1">
-						<input type="password" class="form-control" id="adminPassword" placeholder="" name="adminPassword">
-					</div>
-					<label for="adminPassword" class="col-form-label"> - for user "admin"</label>
-				</div>
-				<div class="form-group row">
-					<div class="col-sm-1">
-						<input type="password" class="form-control" id="monitorPassword" placeholder="" name="monitorPassword">
-					</div>
-					<label for="monitorPassword" class="col-form-label"> - for user "monitor"</label>
-				</div>
+				<h4>Current values:</h4>
+				
+				<table>
+					<thead>
+						<tr>
+							<th> Login </th>
+							<th> Password </th>		
+						</tr>
+					</thead>
+					{% for key,value in values.items() %}
+					<tbody>
+						<tr>
+							<td bgcolor="#afdafc"> {{ key }} </td>
+							<td bgcolor="#7dc4fa"> {{ value }} </td>	
+						</tr>
+					</tbody>
+				{% endfor %}
+				</table>
+				
+				<h4>Users passwords:</h4>
+					
+					<p><select name="user_select" size="1">
+						<option selected disabled>Select username</option>	
+						<option value="admin">admin</option>
+						<option value="monitor">monitor</option>						
+					</select></p>
+					
+					<input type="password" id="password" placeholder="new password" name="password">
 				
 				{% elif path == "receivers" %}
 				
-				<h6>Default users and passwords for receiver models (also receiver description and its software).</h6>
-				<div class="form-group row">
-					<div class="col-sm-1">
-						<h6>Login:</h6>
-					</div>					
-					<div class="col-sm-1">
-						<h6>Password:</h6>
-					</div>
-				</div>
+				<h4>Current values:</h4>
 				
+				<table>
+					<thead>
+						<tr>
+							<th> Model </th>
+							<th> Login </th>
+							<th> Password </th>		
+						</tr>
+					</thead>
+					{% for key,value in values.items() %}
+					<tbody>
+						<tr>
+							<td bgcolor="#afdafc"> {{ key }} </td>
+							<td bgcolor="#7dc4fa"> {{ value[0] }} </td>
+							<td bgcolor="#7dc4fa"> {{ value[1]  }} </td>	
+						</tr>
+					</tbody>
+				{% endfor %}
+				</table>
+				
+				<h4>Default logins and passwords for receiver models:</h4>
+									
+				<p><select name="receiver_select" size="1">
+					<option selected disabled>Select type of receiver</option>	
+					
 				{% for key,value in values.items() %}
-				<div class="form-group row">
-					<div class="col-sm-1">
-						<input type="text" class="form-control" id="{{ key }}User" placeholder="{{ values[key][0] }}" name="{{ key }}User">
-					</div>					
-					<div class="col-sm-1">
-						<input type="password" class="form-control" id="{{ key }}Password" placeholder="" name="{{ key }}Password">
-					</div>
-					<label for="{{ key }}" class="col-form-label"> - for {{ key }}</label>
-				</div>			
+					<option value="{{ key }}">{{ key }}</option>
 				{% endfor %}
 				
+				</select></p>
+				<input type="text" id="login" placeholder="login" name="login">
+				<label for="login"> - new login</label>
+				<br>
+				<br>
+				<input type="password" id="password" placeholder="password" name="password">
+				<label for="password"> - new password</label>
+
 				{% endif %}
-				
-				<div class="form-group">
-					<button type="submit" class="btn btn-primary" onClick="return window.confirm('Update settings?');">Update</button>
-			    </div>				
+				<br>
+				<br>
+				<button type="submit" onClick="return window.confirm('Update settings?');">Update</button>
 			</form>
-		</div>
-	</div>
+
 	
-</div>
