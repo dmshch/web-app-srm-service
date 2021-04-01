@@ -1,0 +1,10 @@
+{
+    "secret_key":"_5#y2LF'4Q8@znx&e?c]",
+    "dialect":"postgresql",
+    "driver":"psycopg2",
+    "user":"postgres",
+    "password":"docker",
+    "host":"127.0.0.1",
+    "port":"5432",
+    "dbname":"servermon"
+}

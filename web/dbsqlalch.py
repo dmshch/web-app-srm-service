@@ -2,22 +2,20 @@
 
 import sqlalchemy as sa
 import ipaddress
-
-dialect = "postgresql"
-driver = "psycopg2"
-user = "postgres"
-password = "docker"
-host = "127.0.0.1"
-port = "5432"
-dbname = "servermon"
+import json
 
 keys = ('ip', 'model', 'satellite', 'login', 'password', 'port', 'state', 'time', 'c_n', 'eb_no', 'l_m')
 
 class DB:
 
     def __init__(self):
-        self.path = dialect + "+" + driver + "://" + user+ ":" + password + "@" + host + ":" + port + "/" + dbname
-        #print(self.path)
+        try:
+            with open("web/settings.json", 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            print("Failed to load settings. Check the correctness of the settings file 'web/settings.json'.")
+
+        self.path = data["dialect"] + "+" + data["driver"] + "://" + data["user"] + ":" + data["password"] + "@" + data["host"] + ":" + data["port"] + "/" + data["dbname"]
 
     def __enter__(self):
         self.conn = sa.create_engine(self.path)
