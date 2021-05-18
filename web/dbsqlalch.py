@@ -2,33 +2,24 @@
 
 import sqlalchemy as sa
 import ipaddress
-
-dialect = "postgresql"
-driver = "psycopg2"
-user = "postgres"
-password = "docker"
-host = "127.0.0.1"
-port = "5432"
-dbname = "servermon"
+import json
 
 keys = ('ip', 'model', 'satellite', 'login', 'password', 'port', 'state', 'time', 'c_n', 'eb_no', 'l_m')
 
-class DB:
-
-    def __init__(self):
-        self.path = dialect + "+" + driver + "://" + user+ ":" + password + "@" + host + ":" + port + "/" + dbname
-        #print(self.path)
-
-    def __enter__(self):
-        self.conn = sa.create_engine(self.path)
-        return self.conn
-
-    def __exit__(self, *args):
-        # ?
-        pass
+def get_engine():
+    try:
+        with open("web/settings.json", 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        print("Failed to load settings. Check the correctness of the settings file 'web/settings.json'.")
+    path = data["dialect"] + "+" + data["driver"] + "://" + data["user"] + ":" + data["password"] + "@" + data["host"] + ":" + data["port"] + "/" + data["dbname"]
+    engine = sa.create_engine(path)
+    return engine
 
 def get_data_receivers(satellite = None, state = None):
-    with DB() as conn:
+    
+    with get_engine().connect() as conn:
+        #print(conn.closed)
         dict_settings = get_settings()
         c_n_boundary, eb_no_boundary = dict_settings["c_n_boundary"], dict_settings["eb_no_boundary"]
         
@@ -64,10 +55,13 @@ def get_data_receivers(satellite = None, state = None):
                 d["color"] = "green"
             
             list_of_data.append(d)
+    #print(conn.closed)
+    sortBySat = lambda list_of_data: list_of_data["satellite"]
+    list_of_data.sort(key = sortBySat)
     return list_of_data
 
 def get_settings():
-    with DB() as conn:
+    with get_engine().connect() as conn:
         # get settings - boundary for c_n and eb_no; c_n_boundary = 8.0, eb_no_boundary = 6.0
         postgresql_select_query = 'SELECT * FROM settings'
         rows = conn.execute(postgresql_select_query)
@@ -78,7 +72,7 @@ def get_settings():
 
 def set_settings(time = None, c_n = None, eb_no = None):
     s1, s2 = "", ""
-    with DB() as conn:
+    with get_engine().connect() as conn:
         if c_n != "":
             try:
                 c_n = float(c_n)
@@ -98,7 +92,7 @@ def set_settings(time = None, c_n = None, eb_no = None):
     return s1 + s2
 
 def get_receiver_authentication():
-    with DB() as conn:
+    with get_engine().connect() as conn:
         postgresql_select_query = 'SELECT * FROM receiver_authentication'
         rows = conn.execute(postgresql_select_query)
         dict_settings = dict()
@@ -111,7 +105,7 @@ def set_receiver_authentication(receiver, login = "", password = ""):
     if receiver == None:
         return "You must choose the type of receiver."
     if login != "" or password != "":
-        with DB() as conn:
+        with get_engine().connect() as conn:
             try:
                 if login != "" and  password != "":
                     postgresql_select_query = "UPDATE receiver_authentication SET login = %s, password = %s WHERE model = %s"
@@ -136,7 +130,7 @@ def set_receiver_authentication(receiver, login = "", password = ""):
     return s1 + s2 + s3
 
 def get_user_authentication():
-    with DB() as conn:
+    with get_engine().connect() as conn:
         postgresql_select_query = 'SELECT * FROM user_authentication'
         rows = conn.execute(postgresql_select_query)
         dict_settings = dict()
@@ -147,7 +141,7 @@ def get_user_authentication():
 def set_user_authentication(user, password):
     status, s1, s2 = "", "", ""
     if user != None and password != "":
-        with DB() as conn:
+        with get_engine().connect() as conn:
             try:
                 postgresql_select_query = "UPDATE user_authentication SET password = %s WHERE login = %s"
                 rows = conn.execute(postgresql_select_query, (password, user, ))
@@ -171,8 +165,7 @@ def add(ip, model, satellite, login, password, port, state):
         return "Invalid IP address."
 
     # check login and password
-
-    with DB() as conn:
+    with get_engine().connect() as conn:
         try:
             if login == "" and password == "":
                 postgresql_select_query = 'SELECT COUNT(*) FROM receivers WHERE ip= %s AND port= %s'
@@ -190,7 +183,7 @@ def add(ip, model, satellite, login, password, port, state):
     return status
 
 def delete(ip, port):
-    with DB() as conn:
+    with get_engine().connect() as conn:
         try:
             postgresql_select_query = 'DELETE FROM receivers WHERE ip = %s AND port = %s'
             rows = conn.execute(postgresql_select_query, (ip, port))
@@ -202,7 +195,7 @@ def delete(ip, port):
 def get(ip, port):
     status = ""
     d = dict()
-    with DB() as conn:
+    with get_engine().connect() as conn:
         try:
             postgresql_select_query = 'SELECT * FROM receivers WHERE ip = %s AND port = %s'
             rows = conn.execute(postgresql_select_query, (ip, port))
@@ -219,7 +212,7 @@ def update(ip, model, satellite, login, password, port, state):
     if state == "don't used":
         state = False
     s1, s2, s3, s4 = "", "", "", ""
-    with DB() as conn:
+    with get_engine().connect() as conn:
         try:
             if login != "" and password != "":
                 postgresql_select_query = "UPDATE receivers SET login = %s, password = %s WHERE ip = %s AND port = %s"

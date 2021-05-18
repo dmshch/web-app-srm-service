@@ -79,7 +79,7 @@
 
 	<br>
 
-			<table bgcolor="#FFFFF2">
+			<table>
 				<thead>
 					<tr>
 						<th> IP </th>
@@ -94,24 +94,24 @@
 			{% for value in list_of_receivers %}
 				<tbody>
 					<tr>
-						<th> {{ value.ip}} </th>
-						<td> {{ value.model }} </td>
-						<td> {{ value.satellite  }} </td>
-						<td> {{ value.port }} </td>
+						<td bgcolor="#e6f4ff"> {{ value.ip}} </td>
+						<td bgcolor="#d0e3f7"> {{ value.model }} </td>
+						<td bgcolor="#e6f4ff"> {{ value.satellite  }} </td>
+						<td bgcolor="#d0e3f7"> {{ value.port }} </td>
 						{% if value.login == None %}
-						<td> by default </td>
+						<td bgcolor="#e6f4ff"> by default </td>
 						{% else %}
-						<td> **** </td>
+						<td bgcolor="#e6f4ff"> **** </td>
 						{% endif %}
 						{% if value.password == None %}
-						<td> by default </td>
+						<td bgcolor="#d0e3f7"> by default </td>
 						{% else %}
-						<td> **** </td>
+						<td bgcolor="#d0e3f7"> **** </td>
 						{% endif %}						
 						{% if value.state == 1 %}
-						<td> used </td>
+						<td bgcolor="#e6f4ff"> used </td>
 						{% elif value.state == 0 %}
-						<td> don't used </td>
+						<td bgcolor="#e6f4ff"> don't used </td>
 						{% endif %}
 						<td>
 							<a href="/edit/{{ value.ip}}/{{ value.port }}/get">Edit</a>				

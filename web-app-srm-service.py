@@ -6,20 +6,59 @@ from flask import redirect, url_for
 from flask import render_template
 from flask import flash
 from web import dbsqlalch
+from web import settings
+from web import users
+import flask_login
 import datetime
 
 app = Flask(__name__)
 
-# ------------------------------------------
-# Here only for testing 
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
-# ------------------------------------------
+data = settings.load_settings()
+app.secret_key = data["secret_key"]
+
+login_manager = flask_login.LoginManager()
+login_manager.init_app(app)
+
+# load users from db
+users_dict = dbsqlalch.get_user_authentication()
+
+@login_manager.user_loader
+def user_loader(login):
+    if login not in users_dict:
+        return
+
+    user = users.User()
+    user.id = login
+    return user
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template('login.html')
+    login  = request.form['login']
+    if request.form['password'] == users_dict[login]:
+        user = users.User()
+        user.id = login
+        flask_login.login_user(user)
+        return render_template('index.html', name='Main', time=get_time())
+    return redirect(url_for('login'))
+
+@app.route('/logout')
+def logout():
+    flask_login.logout_user()
+    return redirect(url_for('login'))
+
+@login_manager.unauthorized_handler
+def unauthorized_handler():
+    return render_template('login.html')
 
 @app.route('/')
+@flask_login.login_required
 def index():
     return render_template('index.html', name='Main', time=get_time())
 
 @app.route('/satellite/<satellite>')
+@flask_login.login_required
 def monitoring(satellite):
     name = satellite
     if name == "monitoring":
@@ -30,17 +69,22 @@ def monitoring(satellite):
     return render_template('index.html', name= name, time= get_time(), final_list= final_list)
     
 @app.route('/receivers', methods=['POST', 'GET'])
+@flask_login.login_required
 def receivers():
     final_list = dbsqlalch.get_data_receivers()
+    sortBySat = lambda final_list: final_list["satellite"]
+    final_list.sort(key = sortBySat)
     return render_template('index.html', name='Receivers', time=get_time(), list_of_receivers=final_list)
 
 @app.route('/add', methods=['POST'])
+@flask_login.login_required
 def add():
     status = dbsqlalch.add(request.form['ip'], request.form['model'], request.form['satellite'], request.form['login'], request.form['password'], request.form['port'], request.form['state'])
     flash(status)
     return redirect(url_for('receivers'))
 
 @app.route('/edit/<ip>/<port>/<action>',  methods=['POST', 'GET'])
+@flask_login.login_required
 def edit(ip, port, action):
     status = ""
 
@@ -64,7 +108,11 @@ def edit(ip, port, action):
         return redirect(url_for('receivers'))
 
 @app.route('/settings/<path>', methods=['POST', 'GET'])
+@flask_login.login_required
 def settings(path):
+    if flask_login.current_user.get_id() == "monitor":
+        flash("You do not have permission to view this page.")
+        return render_template('index.html', name='Main', time=get_time())
     status = ""
     values = dict()
     if path == "global":
