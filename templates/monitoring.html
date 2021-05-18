@@ -24,7 +24,7 @@
 					{% else %}
 					<tr>
 					{% endif %}
-						<td> {{ value.ip }} </td>
+						<td> <a href="/edit/{{ value.ip}}/{{ value.port }}/get"> {{ value.ip }} </a> </td>
 						<td> {{ value.model }} </td>
 						<td> {{ value.satellite  }} </td>
 						<td> {{ value.port }} </td>

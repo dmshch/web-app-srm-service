@@ -72,6 +72,8 @@ def monitoring(satellite):
 @flask_login.login_required
 def receivers():
     final_list = dbsqlalch.get_data_receivers()
+    sortBySat = lambda final_list: final_list["satellite"]
+    final_list.sort(key = sortBySat)
     return render_template('index.html', name='Receivers', time=get_time(), list_of_receivers=final_list)
 
 @app.route('/add', methods=['POST'])
