@@ -6,7 +6,7 @@
 		{% endif %}
 	{% endwith %}
 	
-			<form action="/edit/{{ receiver['ip']}}/{{ receiver['port'] }}/update" method="post">
+			<form action="/receivers/{{ receiver['ip']}}/{{ receiver['port'] }}/update" method="post">
 
 					<label for="ip"><b>IP: {{ receiver['ip']}}</b></label>
 					<!--input type="text" id="ip" placeholder="{{ receiver['ip']}}" name="ip" readonly-->
@@ -43,13 +43,9 @@
 
 					<label for="model" ><b>Model:</b></label>
 					<select id="model" name="model">
-						<!--option selected disabled>Select model</option -->	
-						<option id="proview2962">proview2962</option>
-						<option id="proview7000">proview7000</option>
-						<option id="proview7100s">proview7100s</option>
-						<option id="proview7100mold">proview7100mold</option>
-						<option id="proview7100mnew">proview7100mnew</option>
-						<option id="proview8130">proview8130</option>
+						{% for key, value in types_of_receivers.items() %}
+						<option id="{{ key }}">{{ key }}</option>
+						{% endfor %}
 					</select>
 					
 					</br></br>
@@ -57,29 +53,9 @@
 					<label for="satellite"><b>Satellite:</b></label>
 					<select id="satellite" name="satellite">
 						<option selected disabled>Select satellite</option>
-						<option>0.8-v-high</option>
-						<option>4.8-h-high</option>
-						<option>4.8-v-high</option>
-						<option>4.8-v-low</option>
-						<option>9-v-high</option>
-						<option>9-h-high</option>
-						<option>13-v-high</option>
-						<option>13-h-high</option>
-						<option>13-v-low</option>
-						<option>13-h-low</option>
-						<option>15-v-low</option>
-						<option>15-h-low</option>
-						<option>36-r</option>
-						<option>36-l</option>
-						<option>56-r</option>
-						<option>75-v-low</option>
-						<option>75-v-high</option>
-						<option>75-h-low</option>
-						<option>85-v-high</option>
-						<option>85-h-high</option>
-						<option>90-l</option>
-						<option>90-v-high</option>
-						<option>90-h-low</option>
+						{% for key,value in satellites.items() %}
+							<option>{{ value }}</option>
+						{% endfor %}
 					</select>
 					
 					</br></br>

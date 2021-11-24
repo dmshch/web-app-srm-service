@@ -6,31 +6,24 @@
 	{% endif %}
 {% endwith %}
 
-		<table>
-			<thead>
-				<tr>
-					<th> Color of alarm: </th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td> - receiver has not been tested yet</td>
-				</tr>
-				<tr>
-					<!-- gray -->
-					<td bgcolor="#c0c0c0"> - no connection to receiver</td>
-				</tr>
-				<tr>
-					<!-- green -->
-					<td bgcolor="#98fb98"> - everything (may be) is Ok</td>
-				</tr>
-				<tr>
-					<!-- yellow -->
-					<td bgcolor="#ffd700"> - low signal</td>
-				</tr>
-				<tr>
-					<!-- red -->
-					<td bgcolor="#f08080"> - problem with reception</td>
-				</tr>
-			</tbody>
-		</table>
+<h4>Colors of alarm:</h4>
+	<!-- low -->
+	<input type="text" style="background-color:{{ values['alarm_low'] }};" disabled> 
+	<label for="CN"  > - color for alarm_low</label>
+	<br>
+	<!-- normal -->
+	<input type="text" style="background-color:{{ values['alarm_medium'] }};" disabled> 
+	<label for="CN"  > - color for alarm_medium</label>
+	<br>
+	<!-- medium -->
+	<input type="text" style="background-color:{{ values['alarm_normal'] }};" disabled> 
+	<label for="CN"  > - color for alarm_normal</label>
+	<br>
+	<!-- high -->
+	<input type="text" style="background-color:{{ values['alarm_high'] }};" disabled> 
+	<label for="CN"  > - color for alarm_high</label>
+	<br>
+	<!-- critical -->
+	<input type="text" style="background-color:{{ values['alarm_critical'] }};" disabled> 
+	<label for="CN"  > - color for alarm_critical</label>
+	<br>
