@@ -1,6 +1,25 @@
-			<table>
+
+				<!-- Dropdown -->
+					<td valign=top>
+						<ul>
+							<b>Satellites, &deg;</b>
+							<li type="circle">
+							<select onchange="window.location.href = this.options[this.selectedIndex].value">
+								<option></option>
+								<option>all</option>
+								{% for key,value in satellites.items() %}
+									<option>{{ value }}</option>
+								{% endfor %}
+							</select>
+							</li>
+						</ul>
+					</td>
+
+
+			<table id="monitoring">
 				<thead>
 					<tr>
+						<th> # </th>
 						<th> IP </th>
 						<th> Model </th>
 						<th> Satellite </th>
@@ -8,30 +27,39 @@
 						<th> C/N (dB) </th>
 						<th> Eb/NO(dB) </th>
 						<th> Link Margin (dB) </th>
-						<th> Time of update </th>		
+						<th> Time of update </th>
+						<th> Services </th>
 					</tr>
 				</thead>
 			{% for value in final_list %}
 				<tbody>
-					{% if value.color == "green" %}
-					<tr bgcolor="#98fb98">
-					{% elif value.color == "red" %}
-					<tr bgcolor="#f08080">
-					{% elif value.color == "yellow" %}
-					<tr bgcolor="#ffd700">
-					{% elif value.color == "gray" %}
-					<tr bgcolor="#c0c0c0">
-					{% else %}
-					<tr>
+				
+					{% if value.alarm == "alarm_medium" %}
+					<tr bgcolor="{{ settings.alarm_medium }}">
+					
+					{% elif value.alarm == "alarm_critical" %}
+					<tr bgcolor="{{ settings.alarm_critical }}">
+					
+					{% elif value.alarm == "alarm_high" %}
+					<tr bgcolor="{{ settings.alarm_high }}">
+					
+					{% elif value.alarm == "alarm_low" %}
+					<tr bgcolor="{{ settings.alarm_low }}">
+					
+					{% elif value.alarm == "alarm_normal" %}
+					<tr bgcolor="{{ settings.alarm_normal }}">
+					
 					{% endif %}
-						<td> <a href="/edit/{{ value.ip}}/{{ value.port }}/get"> {{ value.ip }} </a> </td>
+						<td bgcolor="white"> {{ loop.index }} </td>
+						<td> <a href="/receivers/{{ value.ip}}/{{ value.port }}"> {{ value.ip }} </a> </td>
 						<td> {{ value.model }} </td>
 						<td> {{ value.satellite  }} </td>
 						<td> {{ value.port }} </td>
 						<td> {{ value.c_n }} </td>
 						<td> {{ value.eb_no }} </td>
 						<td> {{ value.l_m }} </td>	
-						<td> {{ value.time }} </td>			
+						<td> {{ value.time }} </td>
+						<td bgcolor="white"> <a href="/services/{{ value.ip}}/{{ value.port }}"> Detail </a> </td>	
 					</tr>
 				</tbody>
 			{% endfor %}

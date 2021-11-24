@@ -3,241 +3,338 @@
 import sqlalchemy as sa
 import ipaddress
 import json
+import uuid
 
-keys = ('ip', 'model', 'satellite', 'login', 'password', 'port', 'state', 'time', 'c_n', 'eb_no', 'l_m')
+keys = ('guid', 'ip', 'port', 'model', 'satellite', 'login', 'password', 'state', 'time', 'c_n', 'eb_no', 'l_m')
 
-def get_engine():
-    try:
-        with open("web/settings.json", 'r', encoding='utf-8') as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        print("Failed to load settings. Check the correctness of the settings file 'web/settings.json'.")
-    path = data["dialect"] + "+" + data["driver"] + "://" + data["user"] + ":" + data["password"] + "@" + data["host"] + ":" + data["port"] + "/" + data["dbname"]
-    engine = sa.create_engine(path)
-    return engine
+class DB():
+    engine = None
+    def __init__(self):
+        try:
+            with open("web/settings.json", 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            print("Failed to load settings. Check the correctness of the settings file 'web/settings.json'.")
+        path = data["dialect"] + "+" + data["driver"] + "://" + data["user"] + ":" + data["password"] + "@" + data["host"] + ":" + data["port"] + "/" + data["dbname"]
+        self.engine = sa.create_engine(path)
+      
+    def get_receivers(self, satellite = None, state = None):
 
-def get_data_receivers(satellite = None, state = None):
+        with self.engine.connect() as conn:
+
+            metadata = sa.MetaData()
+            receivers = sa.Table('receivers', metadata, autoload=True, autoload_with=conn)
+
+            dict_settings = self.get_settings()
+            c_n_boundary, eb_no_boundary = dict_settings["c_n_boundary"], dict_settings["eb_no_boundary"]
+
+            list_of_data = []
+            if satellite is None and state is not None:
+                query = sa.select([receivers]).where(receivers.columns.state == state)
+                ResultProxy = conn.execute(query)
+                ResultSet = ResultProxy.fetchall()
+
+            if satellite is None and state is None:
+                query = sa.select([receivers])
+                ResultProxy = conn.execute(query)
+                ResultSet = ResultProxy.fetchall()
+                # ? ? ?
+                for row in ResultSet:
+                    d = dict(zip(keys, row))
+                    list_of_data.append(d)
+                self.engine.dispose()
+                return list_of_data
+
+            if satellite is not None and state is not None:
+                query = sa.select([receivers]).where(receivers.columns.satellite == satellite)
+                ResultProxy = conn.execute(query)
+                ResultSet = ResultProxy.fetchall()
+
+            for row in ResultSet:
+                d = dict(zip(keys, row))
+                #print(d["c_n"], d['eb_no'])
+                if d["c_n"]  == "not initialized" or d['eb_no'] == "not initialized":
+                    d["alarm"] = "alarm_medium"
+                elif d["c_n"]  == "new" or d['eb_no'] == "new":
+                    d["alarm"] = "alarm_low"
+                elif d["c_n"] == "0" or d['eb_no'] == "0":
+                    d["alarm"] = "alarm_critical"
+                # need try
+                elif float(d["c_n"]) <= float(c_n_boundary) or float(d["eb_no"]) <= float(eb_no_boundary):
+                    d["alarm"] = "alarm_high"
+                else:
+                    d["alarm"] = "alarm_normal"
+                list_of_data.append(d)
+
+            sortBySat = lambda list_of_data: list_of_data["satellite"]
+            list_of_data.sort(key = sortBySat)
+            self.engine.dispose()
+            return list_of_data
+
+    def get_settings(self):
+        with self.engine.connect() as conn:
+            metadata = sa.MetaData()
+            settings = sa.Table('settings', metadata, autoload=True, autoload_with=conn)
+            query = sa.select([settings])
+            ResultProxy = conn.execute(query)
+            ResultSet = ResultProxy.fetchall()
+            dict_settings = dict()
+            for row in ResultSet:
+                dict_settings[row[0]] = row[1]
+            self.engine.dispose()
+            return dict_settings
+
+    def set_settings(self, settings_dict):
+        status = ()
+        with self.engine.connect() as conn:
+            for key in settings_dict:
+                if settings_dict[key] != "":
+                    if key == "c_n_boundary" or key == "eb_no_boundary":
+                        try:
+                            float(settings_dict[key])
+                        except:
+                            status = ("An error occurred while updating the " + key + ". Please check input value. ", False)
+                            continue
+                    try:
+                        metadata = sa.MetaData()
+                        settings = sa.Table('settings', metadata, autoload = True, autoload_with = conn)
+                        query = sa.update(settings).values(value = settings_dict[key])
+                        query = query.where(settings.columns.name == key)
+                        ResultProxy = conn.execute(query)
+                        status = (key + " has been updated. ", True)
+                    except:
+                        status = ("An error occurred while updating the settings.", False)
+        self.engine.dispose()
+        return (status, )
+
+    def get_satellites(self):
+        with self.engine.connect() as conn:
+            metadata = sa.MetaData()
+            satellites = sa.Table('satellites', metadata, autoload=True, autoload_with=conn)
+            query = sa.select([satellites])
+            ResultProxy = conn.execute(query)
+            ResultSet = ResultProxy.fetchall()
+            dict_satellites = dict()
+            for row in ResultSet:
+                dict_satellites[row[0]] = row[1]
+            self.engine.dispose()
+            return dict_satellites            
+
+    # IN PROGRESS
+    def add_satellites(self, satellite):
+        satellite = satellite.strip()
+        status = ()
+        with self.engine.connect() as conn:
+            metadata = sa.MetaData()
+            satellites = sa.Table('satellites', metadata, autoload=True, autoload_with=conn)
+            try:
+                if satellites != "":
+                    query = sa.select([satellites]).where(satellites.columns.name == satellite)
+                    ResultProxy = conn.execute(query)
+                    ResultSet = ResultProxy.fetchall()
+                    if len(ResultSet) == 0:
+                        guid = str(uuid.uuid4())
+                        query = sa.insert(satellites).values(guid = guid, name = satellite)
+                        ResultProxy = conn.execute(query)
+                        status = ("Satellite has been added", True)
+                    else:
+                        status =  ("Satellite exists.", False)
+            except:
+                status = ("An error occurred while adding the receiver.", False)
+        self.engine.dispose()
+        return (status, )
     
-    with get_engine().connect() as conn:
-        #print(conn.closed)
-        dict_settings = get_settings()
-        c_n_boundary, eb_no_boundary = dict_settings["c_n_boundary"], dict_settings["eb_no_boundary"]
-        
-        list_of_data = []
-        if satellite is None and state is not None:
-            postgresql_select_query = 'SELECT * FROM receivers WHERE state= %s'
-            rows = conn.execute(postgresql_select_query, (state, ))
+    def get_receiver_authentication(self):
+        with self.engine.connect() as conn:
+            metadata = sa.MetaData()
+            receiver_models = sa.Table('receiver_models', metadata, autoload = True, autoload_with = conn)
+            query = sa.select([receiver_models])
+            ResultProxy = conn.execute(query)
+            ResultSet = ResultProxy.fetchall()
+            dict_receiver_models = dict()
+            for row in ResultSet:
+                dict_receiver_models[row[1]] = [row[2],row[3]]
+            self.engine.dispose()
+            return dict_receiver_models
 
-        if satellite is None and state is None:
-             postgresql_select_query = 'SELECT * FROM receivers'
-             rows = conn.execute(postgresql_select_query)
-             # ? ? ?
-             for row in rows:
-                 d = dict(zip(keys, row))
-                 list_of_data.append(d)
-             return list_of_data
+    def set_receiver_authentication(self, receiver, login = "", password = ""):
+        s1, s2, s3 = (), (), ()
+        if receiver == None:
+            return "You must choose the type of receiver."
+        if login != "" or password != "":
+            with self.engine.connect() as conn:
+                metadata = sa.MetaData()
+                receiver_models = sa.Table('receiver_models', metadata, autoload = True, autoload_with = conn)
+                try:
+                    if login != "" and  password != "":
+                        query = sa.update(receiver_models).values(login = login, password = password)
+                        query = query.where(receiver_models.columns.model == receiver)
+                        ResultProxy = conn.execute(query)                        
+                        s1 = ("The login and password have been updated.", True)
+                except:
+                    s1 = ("An error occurred while updating the login and the password.", False)
+                try:
+                    if login != "" and password == "":
+                        query = sa.update(receiver_models).values(login = login)
+                        query = query.where(receiver_models.columns.model == receiver)
+                        ResultProxy = conn.execute(query)
+                        s2 = ("The login has been updated.", True)
+                except:
+                    s2 = ("An error occurred while updating the login.", False)
+                try:
+                    if login == "" and password != "":
+                        query = sa.update(receiver_models).values(password = password)
+                        query = query.where(receiver_models.columns.model == receiver)
+                        ResultProxy = conn.execute(query)
+                        s3 = ("The password has been updated.", True)
+                except:
+                    s3 = ("An error occurred while updating the password.", False)
+        self.engine.dispose()
+        return (s1, s2, s3)
 
-        if satellite is not None and state is not None:
-             postgresql_select_query = 'SELECT * FROM receivers WHERE state= %s AND satellite= %s'
-             rows = conn.execute(postgresql_select_query, (state, satellite , ))
+    def get_user_authentication(self):
+        with self.engine.connect() as conn:
+            metadata = sa.MetaData()
+            users = sa.Table('users', metadata, autoload=True, autoload_with=conn)
+            query = sa.select([users])
+            ResultProxy = conn.execute(query)
+            ResultSet = ResultProxy.fetchall()
+            dict_users = dict()
+            for row in ResultSet:
+                dict_users[row[0]] = row[1]
+            self.engine.dispose()
+            return dict_users
 
-        for row in rows:
-            d = dict(zip(keys, row))
-            #print(d["c_n"], d['eb_no'])
-            if d["c_n"]  == "not initialized" or d['eb_no'] == "not initialized":
-                d["color"] = "gray"
-            elif d["c_n"] == "0" or d['eb_no'] == "0":
-                d["color"] = "red"
-            # need try
-            elif float(d["c_n"]) <= float(c_n_boundary) or float(d["eb_no"]) <= float(eb_no_boundary):
-                d["color"] = "yellow"
-            else:
-                d["color"] = "green"
-            
-            list_of_data.append(d)
-    #print(conn.closed)
-    sortBySat = lambda list_of_data: list_of_data["satellite"]
-    list_of_data.sort(key = sortBySat)
-    return list_of_data
+    def set_user_authentication(self, user, password):
+        s1, s2, s3 = (), (), ()
+        if user != None and password != "":
+            with self.engine.connect() as conn:
+                try:
+                    metadata = sa.MetaData()
+                    users = sa.Table('users', metadata, autoload = True, autoload_with = conn)
+                    query = sa.update(users).values(password = password)
+                    query = query.where(users.columns.login == user)
+                    ResultProxy = conn.execute(query)
+                except:
+                    s1 = ("An error occurred while updating the password.", False)
+        if user == None:
+            s2 = ("An error occurred while updating the password: you must choose the username. ", False)
+        if passwd == "":
+            s3 = ("An error occurred while updating the password: you must enter the password. ", False)
+        self.engine.dispose()
+        return (s1, s2, s3)
 
-def get_settings():
-    with get_engine().connect() as conn:
-        # get settings - boundary for c_n and eb_no; c_n_boundary = 8.0, eb_no_boundary = 6.0
-        postgresql_select_query = 'SELECT * FROM settings'
-        rows = conn.execute(postgresql_select_query)
-        dict_settings = dict()
-        for row in rows:
-            dict_settings[row[0]] = row[1]
-        return dict_settings
+    def add_receiver(self, ip, model, satellite, login, password, port, state):
+        if state == "used":
+            state = True
+        if state == "don't used":
+            state = False
+        try:
+            ipaddress.ip_address(ip)
+        except:
+            self.engine.dispose()
+            return "Invalid IP address."
 
-def set_settings(time = None, c_n = None, eb_no = None):
-    s1, s2 = "", ""
-    with get_engine().connect() as conn:
-        if c_n != "":
+        # check login and password
+        with self.engine.connect() as conn:
+            metadata = sa.MetaData()
+            receivers = sa.Table('receivers', metadata, autoload = True, autoload_with = conn)
             try:
-                c_n = float(c_n)
-                postgresql_select_query = "UPDATE settings SET value = %s WHERE name = 'c_n_boundary'"
-                rows = conn.execute(postgresql_select_query, (c_n, ))
-                s1 = "C/N has been updated. "
+                query = sa.select([receivers]).where(receivers.columns.ip == ip)
+                query = query.where(receivers.columns.port == port)
+                ResultProxy = conn.execute(query)
+                ResultSet = ResultProxy.fetchall()
+                if len(ResultSet) == 0:
+                    guid = str(uuid.uuid4())
+                    not_init = "new"
+                    # guid | ip | port | model | satellite | login | password | state |  c_n | eb_no | l_m | time
+                    query = sa.insert(receivers).values(guid = guid, ip = ip, port = port, model = model, satellite = satellite, login = login, password = password, state = state, c_n = not_init, eb_no = not_init, l_m = not_init, time = not_init)
+                    ResultProxy = conn.execute(query)
+                    status = ("Receiver has been added.", True)
+                else:
+                    status =  ("IP and port exists.", False)
             except:
-                s1 = "An error occurred while updating the C/N. "
-        if eb_no != "":
-            try:
-                eb_no = float(eb_no)
-                postgresql_select_query = "UPDATE settings SET value = %s WHERE name = 'eb_no_boundary'"
-                rows = conn.execute(postgresql_select_query, (eb_no, ))
-                s2 = "Eb/NO has been updated"
-            except:
-                s2 = "An error occurred while updating the Eb/NO. "
-    return s1 + s2
+                status = ("An error occurred while adding the receiver.", False)
+        self.engine.dispose()
+        return status
 
-def get_receiver_authentication():
-    with get_engine().connect() as conn:
-        postgresql_select_query = 'SELECT * FROM receiver_authentication'
-        rows = conn.execute(postgresql_select_query)
-        dict_settings = dict()
-        for row in rows:
-            dict_settings[row[0]] = [row[1],row[2]]
-        return dict_settings
-
-def set_receiver_authentication(receiver, login = "", password = ""):
-    s1, s2, s3 = "", "", ""
-    if receiver == None:
-        return "You must choose the type of receiver."
-    if login != "" or password != "":
-        with get_engine().connect() as conn:
+    def delete_receiver(self, ip, port):
+        with self.engine.connect() as conn:
+            metadata = sa.MetaData()
+            receivers = sa.Table('receivers', metadata, autoload = True, autoload_with = conn)
             try:
-                if login != "" and  password != "":
-                    postgresql_select_query = "UPDATE receiver_authentication SET login = %s, password = %s WHERE model = %s"
-                    rows = conn.execute(postgresql_select_query, (login, password, receiver, ))
-                    s1 = "The login and password have been updated."
+                query = sa.delete(receivers)
+                query = query.where(receivers.columns.ip == ip)
+                query = query.where(receivers.columns.port == port)
+                ResultProxy = conn.execute(query)
+                status = ("Receiver has been deleted", True)
             except:
-                s1 = "An error occurred while updating the login and the password."
+                status = ("An error occurred while deleting the receiver.",False)
+        self.engine.dispose()
+        return status
+
+    def get_receiver(self, ip, port):
+        status = ""
+        d = dict()
+        with self.engine.connect() as conn:
+            try:
+                metadata = sa.MetaData()
+                receivers = sa.Table('receivers', metadata, autoload = True, autoload_with = conn)
+                query = sa.select([receivers]).where(receivers.columns.ip == ip)
+                query = query.where(receivers.columns.port == port)
+                ResultProxy = conn.execute(query)
+                ResultSet = ResultProxy.fetchall()                
+                for row in ResultSet:
+                    d = dict(zip(keys, row))
+                status = ("", True)
+            except:
+                status = ("An error occurred while getting the data from DB.", False)
+        self.engine.dispose()
+        return (status, d)
+
+    def update_receiver(self, ip, model, satellite, login, password, port, state):
+        if state == "used":
+            state = True
+        if state == "don't used":
+            state = False
+        s1, s2, s3, s4 = (), (), (), ()
+        with self.engine.connect() as conn:
+            metadata = sa.MetaData()
+            receivers = sa.Table('receivers', metadata, autoload = True, autoload_with = conn)
+            try:
+                if login != "" and password != "":
+                    query = sa.update(receivers).values(login = login, password = password)
+                    query = query.where(receivers.columns.ip == ip)
+                    query = query.where(receivers.columns.port == port)
+                    ResultProxy = conn.execute(query)
+                    s1 = ("The login/password have been updated. ", True)
+            except:
+                s1 = ("An error occurred while updating the receiver (login/password)", False)
             try:
                 if login != "" and password == "":
-                    postgresql_select_query = "UPDATE receiver_authentication SET login = %s WHERE model = %s"
-                    rows = conn.execute(postgresql_select_query, (login, receiver, ))
-                    s2 = "The login has been updated."
+                    query = sa.update(receivers).values(login = login)
+                    query = query.where(receivers.columns.ip == ip)
+                    query = query.where(receivers.columns.port == port)
+                    ResultProxy = conn.execute(query)
+                    s2 = ("The login has been updated.", True)
             except:
-                s2 = "An error occurred while updating the login."
+                s2 = ("An error occurred while updating the receiver (login). ", False)
             try:
                 if login == "" and password != "":
-                    postgresql_select_query = "UPDATE receiver_authentication SET password = %s WHERE model = %s"
-                    rows = conn.execute(postgresql_select_query, (password, receiver, ))
-                    s3 = "The password has been updated."
+                    query = sa.update(receivers).values(password = password)
+                    query = query.where(receivers.columns.ip == ip)
+                    query = query.where(receivers.columns.port == port)
+                    ResultProxy = conn.execute(query)
+                    s3 = ("The password has been updated.", True)
             except:
-                s3 = "An error occurred while updating the password."
-    return s1 + s2 + s3
-
-def get_user_authentication():
-    with get_engine().connect() as conn:
-        postgresql_select_query = 'SELECT * FROM user_authentication'
-        rows = conn.execute(postgresql_select_query)
-        dict_settings = dict()
-        for row in rows:
-            dict_settings[row[0]] = row[1]
-        return dict_settings
-
-def set_user_authentication(user, password):
-    status, s1, s2 = "", "", ""
-    if user != None and password != "":
-        with get_engine().connect() as conn:
+                s3 = ("An error occurred while updating the receiver (password). ", False)
             try:
-                postgresql_select_query = "UPDATE user_authentication SET password = %s WHERE login = %s"
-                rows = conn.execute(postgresql_select_query, (password, user, ))
-                status = "The password has been updated. "
+                query = sa.update(receivers).values(model = model, satellite = satellite, state = state)
+                query = query.where(receivers.columns.ip == ip)
+                query = query.where(receivers.columns.port == port)
+                ResultProxy = conn.execute(query)
+                s4 = ("The model/satellite/state have been updated. ", True)
             except:
-                status = "An error occurred while updating the password."
-    if user == None:
-        s1 = "An error occurred while updating the password: you must choose the username. "
-    if password == "":
-        s2 = "An error occurred while updating the password: you must enter the password. "
-    return status + s1 + s2
-
-def add(ip, model, satellite, login, password, port, state):
-    if state == "used":
-        state = True
-    if state == "don't used":
-        state = False
-    try:
-        ipaddress.ip_address(ip)
-    except:
-        return "Invalid IP address."
-
-    # check login and password
-    with get_engine().connect() as conn:
-        try:
-            if login == "" and password == "":
-                postgresql_select_query = 'SELECT COUNT(*) FROM receivers WHERE ip= %s AND port= %s'
-                #it returns like [(0,)] or [(1,)]
-                if ([i for i in conn.execute(postgresql_select_query, (ip, port, ))][0][0]) == 0:
-                    not_init = "not initialized"
-                    postgresql_select_query = 'INSERT INTO receivers (ip, model, satellite, port, state, c_n, eb_no, l_m, time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
-                    rows = conn.execute(postgresql_select_query, (ip, model, satellite, port, state, not_init, not_init, not_init, not_init ))
-                    status = "Receiver has been added"
-                else:
-                    status =  "IP and port exists."
-        except:
-            status = "An error occurred while adding the receiver."
-    print(ip, model, satellite, login, password, port, state)
-    return status
-
-def delete(ip, port):
-    with get_engine().connect() as conn:
-        try:
-            postgresql_select_query = 'DELETE FROM receivers WHERE ip = %s AND port = %s'
-            rows = conn.execute(postgresql_select_query, (ip, port))
-            status = "Receiver has been deleted"
-        except:
-            status = "An error occurred while deleting the receiver."
-    return status
-
-def get(ip, port):
-    status = ""
-    d = dict()
-    with get_engine().connect() as conn:
-        try:
-            postgresql_select_query = 'SELECT * FROM receivers WHERE ip = %s AND port = %s'
-            rows = conn.execute(postgresql_select_query, (ip, port))
-            for row in rows:
-                 d = dict(zip(keys, row))
-        except:
-            status = "An error occurred while getting the data from DB."
-    return (status, d)
-
-def update(ip, model, satellite, login, password, port, state):
-    print(ip, model, satellite, login, password, port, state)
-    if state == "used":
-        state = True
-    if state == "don't used":
-        state = False
-    s1, s2, s3, s4 = "", "", "", ""
-    with get_engine().connect() as conn:
-        try:
-            if login != "" and password != "":
-                postgresql_select_query = "UPDATE receivers SET login = %s, password = %s WHERE ip = %s AND port = %s"
-                rows = conn.execute(postgresql_select_query, (login, password, ip, port, ))
-                s1 = "The login and password have been updated. "
-        except:
-            s1 = "An error occurred while updating the receiver (login and password)"
-        try:
-            if login != "" and password == "":
-                postgresql_select_query = "UPDATE receivers SET login = %s WHERE ip = %s AND port = %s"
-                rows = conn.execute(postgresql_select_query, (login, ip, port, ))
-                s2 = "The login has been updated."
-        except:
-            s2 = "An error occurred while updating the receiver (login). "
-        try:
-            if login == "" and password != "":
-                postgresql_select_query = "UPDATE receivers SET password = %s WHERE ip = %s AND port = %s"
-                rows = conn.execute(postgresql_select_query, (password, ip, port, ))
-                s3 = "The password has been updated."
-        except:
-            s3 = "An error occurred while updating the receiver (password). "
-        try:
-            postgresql_select_query = "UPDATE receivers SET model = %s, satellite = %s, state = %s WHERE ip = %s AND port = %s"
-            rows = conn.execute(postgresql_select_query, (model, satellite, state, ip, port, ))
-            s4 = "The model, satellite and state have been updated. "
-        except:
-            s4 = "An error occurred while updating the model, satellite and state. "
-    return s1 + s2 + s3 + s4
+                s4 = ("An error occurred while updating the model/satellite/state. ", False)
+        self.engine.dispose()
+        return (s1, s2, s3, s4)

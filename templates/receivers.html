@@ -1,57 +1,40 @@
 	
-	{% with messages = get_flashed_messages() %}
+	{% with messages = get_flashed_messages(with_categories=true) %}
 		{% if messages %}
-			{% for message in messages %}
-			  <p class="text-info font-weight-bold">{{ message }}</p>
+			{% for category, message in messages %}
+				{% if category == "normal" %}
+				<font color="green">
+				{% elif category == "error" %}
+				<font color="red">
+				{% endif %}
+				<p class="text-info font-weight-bold">{{ message }}</p>
+				</font>
 			{% endfor %}
 		{% endif %}
 	{% endwith %}
 	
-
-
-			<form action="/add" method="post">
+			<form action="/receivers/" method="post">
 
 					<label for="ip">IP:</label>
 					<input type="text" id="ip" placeholder="Enter IPv4 address" name="ip">
-
-
+					<br>
+					<br>
 					<label for="model">Model:</label>
 					<select id="model" name="model">
-						<option>proview2962</option>
-						<option>proview7000</option>
-						<option>proview7100s</option>
-						<option>proview7100mold</option>
-						<option>proview7100mnew</option>
-						<option>proview8130</option>
+						{% for key, value in types_of_receivers.items() %}
+						<option>{{ key }}</option>
+						{% endfor %}
 					</select>
-
+					<br>
+					<br>					
 					<label for="satellite">Satellite:</label>
 					<select id="satellite" name="satellite">
-						<option>0.8-v-high</option>
-						<option>4.8-h-high</option>
-						<option>4.8-v-high</option>
-						<option>4.8-v-low</option>
-						<option>9-v-high</option>
-						<option>9-h-high</option>
-						<option>13-v-high</option>
-						<option>13-h-high</option>
-						<option>13-v-low</option>
-						<option>13-h-low</option>
-						<option>15-v-low</option>
-						<option>15-h-low</option>
-						<option>36-r</option>
-						<option>36-l</option>
-						<option>56-r</option>
-						<option>75-v-low</option>
-						<option>75-v-high</option>
-						<option>75-h-low</option>
-						<option>85-v-high</option>
-						<option>85-h-high</option>
-						<option>90-l</option>
-						<option>90-v-high</option>
-						<option>90-h-low</option>
+						{% for key, value in satellites.items() %}
+							<option>{{ value }}</option>
+						{% endfor %}
 					</select>
-
+					<br>
+					<br>
 					<label for="port">Port:</label>
 					<select id="port" name="port">
 						<option>default</option>
@@ -60,19 +43,23 @@
 						<option>3</option>
 						<option>4</option>						
 					</select>
-
+					<br>
+					<br>
 					<label for="login">Login:</label>
 					<input type="text" id="login" placeholder="Don't enter if default" name="login">
-
+					<br>
+					<br>
 					<label for="pwd">Password:</label>
 					<input type="password" id="pwd" placeholder="Don't enter if default" name="password">
-
+					<br>
+					<br>
 					<label for="state">State:</label>
 					<select id="state" name="state">
 						<option>used</option>
 						<option>don't used</option>
 					</select>
-
+					<br>
+					<br>
 					<button type="submit">Add</button>
 
 			</form>
@@ -82,6 +69,7 @@
 			<table>
 				<thead>
 					<tr>
+						<th> # </th>
 						<th> IP </th>
 						<th> Model </th>
 						<th> Satellite </th>
@@ -94,6 +82,7 @@
 			{% for value in list_of_receivers %}
 				<tbody>
 					<tr>
+						<td> {{ loop.index }} </td>
 						<td bgcolor="#e6f4ff"> {{ value.ip}} </td>
 						<td bgcolor="#d0e3f7"> {{ value.model }} </td>
 						<td bgcolor="#e6f4ff"> {{ value.satellite  }} </td>
@@ -114,12 +103,14 @@
 						<td bgcolor="#e6f4ff"> don't used </td>
 						{% endif %}
 						<td>
-							<a href="/edit/{{ value.ip}}/{{ value.port }}/get">Edit</a>				
+								<a href="/receivers/{{ value.ip}}/{{ value.port }}">Edit</a>
 						</td>
-						<td>	
-							<a href="/edit/{{ value.ip}}/{{ value.port }}/delete" onClick="return window.confirm('Delete receiver with ip={{ value.ip}} and port={{ value.port }}?');">Delete</a>
+						<td>
+							<form action="/receivers/{{ value.ip}}/{{ value.port}}/delete" method="post">
+								<button type="submit" onClick="return window.confirm('Delete receiver with ip = *{{ value.ip}}* and port = *{{ value.port}}*?');"> Delete </button>
+							</form>
 						</td>
-					</tr>
+					</tr>							
 				</tbody>
 			{% endfor %}
 			</table>
