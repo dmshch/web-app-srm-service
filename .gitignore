@@ -15,3 +15,4 @@ run_script.sh
 how_to_run.txt
 wsgi.py
 web_app_srm_service.ini
+uwsgi.ini
