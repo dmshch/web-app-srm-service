@@ -17,7 +17,21 @@ class DB():
             print("Failed to load settings. Check the correctness of the settings file 'web/settings.json'.")
         path = data["dialect"] + "+" + data["driver"] + "://" + data["user"] + ":" + data["password"] + "@" + data["host"] + ":" + data["port"] + "/" + data["dbname"]
         self.engine = sa.create_engine(path)
-      
+
+    def check_value(self, d, c_n_boundary, eb_no_boundary):
+        if d["c_n"]  == "not initialized" or d['eb_no'] == "not initialized":
+            d["alarm"] = "alarm_medium"
+        elif d["c_n"]  == "new" or d['eb_no'] == "new":
+            d["alarm"] = "alarm_low"
+        elif d["c_n"] == "0" or d['eb_no'] == "0":
+            d["alarm"] = "alarm_critical"
+            # need try
+        elif float(d["c_n"]) <= float(c_n_boundary) or float(d["eb_no"]) <= float(eb_no_boundary):
+            d["alarm"] = "alarm_high"
+        else:
+            d["alarm"] = "alarm_normal"
+        return d
+
     def get_receivers(self, satellite = None, state = None):
 
         with self.engine.connect() as conn:
@@ -29,6 +43,7 @@ class DB():
             c_n_boundary, eb_no_boundary = dict_settings["c_n_boundary"], dict_settings["eb_no_boundary"]
 
             list_of_data = []
+
             if satellite is None and state is not None:
                 query = sa.select([receivers]).where(receivers.columns.state == state)
                 ResultProxy = conn.execute(query)
@@ -47,30 +62,19 @@ class DB():
 
             if satellite is not None and state is not None:
                 query = sa.select([receivers]).where(receivers.columns.satellite == satellite)
+                query = query.where(receivers.columns.state == "True")
                 ResultProxy = conn.execute(query)
                 ResultSet = ResultProxy.fetchall()
 
             for row in ResultSet:
                 d = dict(zip(keys, row))
-                #print(d["c_n"], d['eb_no'])
-                if d["c_n"]  == "not initialized" or d['eb_no'] == "not initialized":
-                    d["alarm"] = "alarm_medium"
-                elif d["c_n"]  == "new" or d['eb_no'] == "new":
-                    d["alarm"] = "alarm_low"
-                elif d["c_n"] == "0" or d['eb_no'] == "0":
-                    d["alarm"] = "alarm_critical"
-                # need try
-                elif float(d["c_n"]) <= float(c_n_boundary) or float(d["eb_no"]) <= float(eb_no_boundary):
-                    d["alarm"] = "alarm_high"
-                else:
-                    d["alarm"] = "alarm_normal"
+                d = self.check_value(d, c_n_boundary, eb_no_boundary)
                 list_of_data.append(d)
-
             sortBySat = lambda list_of_data: list_of_data["satellite"]
             list_of_data.sort(key = sortBySat)
             self.engine.dispose()
             return list_of_data
-
+            
     def get_settings(self):
         with self.engine.connect() as conn:
             metadata = sa.MetaData()
@@ -276,6 +280,8 @@ class DB():
     def get_receiver(self, ip, port):
         status = ""
         d = dict()
+        dict_settings = self.get_settings()
+        c_n_boundary, eb_no_boundary = dict_settings["c_n_boundary"], dict_settings["eb_no_boundary"]
         with self.engine.connect() as conn:
             try:
                 metadata = sa.MetaData()
@@ -286,6 +292,7 @@ class DB():
                 ResultSet = ResultProxy.fetchall()                
                 for row in ResultSet:
                     d = dict(zip(keys, row))
+                    d = self.check_value(d, c_n_boundary, eb_no_boundary)
                 status = ("", True)
             except:
                 status = ("An error occurred while getting the data from DB.", False)
