@@ -83,3 +83,7 @@
 					<button type="cancel" onclick="window.location='/receivers';return false;">Cancel</button>
 
 			</form>
+			<br>
+			<form action="/receivers/{{ receiver['ip']}}/{{ receiver['port'] }}/delete" method="post">
+				<button type="submit" onClick="return window.confirm('Delete receiver with ip={{ receiver['ip']}} and port={{ receiver['port']}}?');">Delete</button>
+			</form>

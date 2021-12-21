@@ -37,36 +37,28 @@ class DB():
         with self.engine.connect() as conn:
 
             metadata = sa.MetaData()
-            receivers = sa.Table('receivers', metadata, autoload=True, autoload_with=conn)
+            receivers = sa.Table('receivers', metadata, autoload = True, autoload_with = conn)
+            satellites = sa.Table('satellites', metadata, autoload = True, autoload_with = conn)
+            models = sa.Table('receiver_models', metadata, autoload = True, autoload_with = conn)
 
             dict_settings = self.get_settings()
             c_n_boundary, eb_no_boundary = dict_settings["c_n_boundary"], dict_settings["eb_no_boundary"]
 
             list_of_data = []
 
+            query = sa.select([receivers.columns.guid, receivers.columns.ip, receivers.columns.port, models.columns.model, satellites.columns.name, receivers.columns.login, receivers.columns.password, receivers.columns.state, receivers.columns.time, receivers.columns.c_n, receivers.columns.eb_no, receivers.columns.l_m])
+            query = query.select_from(receivers.join(satellites, receivers.columns.satellite == satellites.columns.guid).join(models, receivers.columns.model == models.columns.guid))
+
             if satellite is None and state is not None:
-                query = sa.select([receivers]).where(receivers.columns.state == state)
-                ResultProxy = conn.execute(query)
-                ResultSet = ResultProxy.fetchall()
-
-            if satellite is None and state is None:
-                query = sa.select([receivers])
-                ResultProxy = conn.execute(query)
-                ResultSet = ResultProxy.fetchall()
-                # ? ? ?
-                for row in ResultSet:
-                    d = dict(zip(keys, row))
-                    list_of_data.append(d)
-                self.engine.dispose()
-                return list_of_data
-
+                query = query.where(receivers.columns.state == state)
             if satellite is not None and state is not None:
-                query = sa.select([receivers]).where(receivers.columns.satellite == satellite)
-                query = query.where(receivers.columns.state == "True")
-                ResultProxy = conn.execute(query)
-                ResultSet = ResultProxy.fetchall()
+                 query = query.where(receivers.columns.state == state)
+                 query = query.where(satellites.columns.name == satellite)
+            ResultProxy = conn.execute(query)
+            ResultSet = ResultProxy.fetchall()
 
             for row in ResultSet:
+                #print(row)
                 d = dict(zip(keys, row))
                 d = self.check_value(d, c_n_boundary, eb_no_boundary)
                 list_of_data.append(d)
@@ -111,20 +103,22 @@ class DB():
         self.engine.dispose()
         return (status, )
 
-    def get_satellites(self):
+    def get_satellites(self, name = None, guid = None):
         with self.engine.connect() as conn:
             metadata = sa.MetaData()
             satellites = sa.Table('satellites', metadata, autoload=True, autoload_with=conn)
-            query = sa.select([satellites])
+            if name != None:
+                query = sa.select([satellites]).where(satellites.columns.name == name)
+            if name == None:
+                query = sa.select([satellites])
             ResultProxy = conn.execute(query)
             ResultSet = ResultProxy.fetchall()
             dict_satellites = dict()
             for row in ResultSet:
                 dict_satellites[row[0]] = row[1]
             self.engine.dispose()
-            return dict_satellites            
+            return dict_satellites
 
-    # IN PROGRESS
     def add_satellites(self, satellite):
         satellite = satellite.strip()
         status = ()
@@ -148,53 +142,44 @@ class DB():
         self.engine.dispose()
         return (status, )
     
-    def get_receiver_authentication(self):
+    def get_receiver_authentication(self, model = None):
         with self.engine.connect() as conn:
             metadata = sa.MetaData()
             receiver_models = sa.Table('receiver_models', metadata, autoload = True, autoload_with = conn)
             query = sa.select([receiver_models])
+            if model != None:
+                query = query.where(receiver_models.columns.model == model)
             ResultProxy = conn.execute(query)
             ResultSet = ResultProxy.fetchall()
             dict_receiver_models = dict()
             for row in ResultSet:
-                dict_receiver_models[row[1]] = [row[2],row[3]]
+                dict_receiver_models[row[1]] = [row[2],row[3],row[0]]
             self.engine.dispose()
             return dict_receiver_models
 
-    def set_receiver_authentication(self, receiver, login = "", password = ""):
-        s1, s2, s3 = (), (), ()
-        if receiver == None:
-            return "You must choose the type of receiver."
-        if login != "" or password != "":
-            with self.engine.connect() as conn:
+    # HERE
+    def set_receiver_authentication(self, receiver, login, password):
+        s1, s2 = (), ()
+        # Get old data
+        old_data = self.get_receiver_authentication(model = receiver)
+        print(old_data)
+        with self.engine.connect() as conn:
+            try:
                 metadata = sa.MetaData()
                 receiver_models = sa.Table('receiver_models', metadata, autoload = True, autoload_with = conn)
-                try:
-                    if login != "" and  password != "":
-                        query = sa.update(receiver_models).values(login = login, password = password)
-                        query = query.where(receiver_models.columns.model == receiver)
-                        ResultProxy = conn.execute(query)                        
-                        s1 = ("The login and password have been updated.", True)
-                except:
-                    s1 = ("An error occurred while updating the login and the password.", False)
-                try:
-                    if login != "" and password == "":
-                        query = sa.update(receiver_models).values(login = login)
-                        query = query.where(receiver_models.columns.model == receiver)
-                        ResultProxy = conn.execute(query)
-                        s2 = ("The login has been updated.", True)
-                except:
-                    s2 = ("An error occurred while updating the login.", False)
-                try:
-                    if login == "" and password != "":
-                        query = sa.update(receiver_models).values(password = password)
-                        query = query.where(receiver_models.columns.model == receiver)
-                        ResultProxy = conn.execute(query)
-                        s3 = ("The password has been updated.", True)
-                except:
-                    s3 = ("An error occurred while updating the password.", False)
+                if login != old_data[receiver][0]:
+                    query = sa.update(receiver_models).values(login = login)
+                    query = query.where(receiver_models.columns.model == receiver)
+                    ResultProxy = conn.execute(query)
+                if password != old_data[receiver][1]:
+                    query = sa.update(receiver_models).values(password = password)
+                    query = query.where(receiver_models.columns.model == receiver)
+                    ResultProxy = conn.execute(query)
+                s1 = ("The data has been updated.", True)
+            except:
+                s2 = ("An error occurred while updating the data.", False)
         self.engine.dispose()
-        return (s1, s2, s3)
+        return (s1, s2)
 
     def get_user_authentication(self):
         with self.engine.connect() as conn:
@@ -252,7 +237,10 @@ class DB():
                     guid = str(uuid.uuid4())
                     not_init = "new"
                     # guid | ip | port | model | satellite | login | password | state |  c_n | eb_no | l_m | time
-                    query = sa.insert(receivers).values(guid = guid, ip = ip, port = port, model = model, satellite = satellite, login = login, password = password, state = state, c_n = not_init, eb_no = not_init, l_m = not_init, time = not_init)
+                    # Get guide from satellite
+                    guid_sat = list(self.get_satellites(name = satellite).items())[0][0]
+                    guid_mod = self.get_receiver_authentication(model = model)[model][2]
+                    query = sa.insert(receivers).values(guid = guid, ip = ip, port = port, model = guid_mod, satellite = guid_sat, login = login, password = password, state = state, c_n = not_init, eb_no = not_init, l_m = not_init, time = not_init)
                     ResultProxy = conn.execute(query)
                     status = ("Receiver has been added.", True)
                 else:
@@ -286,8 +274,14 @@ class DB():
             try:
                 metadata = sa.MetaData()
                 receivers = sa.Table('receivers', metadata, autoload = True, autoload_with = conn)
-                query = sa.select([receivers]).where(receivers.columns.ip == ip)
+                satellites = sa.Table('satellites', metadata, autoload = True, autoload_with = conn)
+                models = sa.Table('receiver_models', metadata, autoload = True, autoload_with = conn)
+                
+                query = sa.select([receivers.columns.guid, receivers.columns.ip, receivers.columns.port, models.columns.model, satellites.columns.name, receivers.columns.login, receivers.columns.password, receivers.columns.state, receivers.columns.time, receivers.columns.c_n, receivers.columns.eb_no, receivers.columns.l_m])
+                query = query.select_from(receivers.join(satellites, receivers.columns.satellite == satellites.columns.guid).join(models, receivers.columns.model == models.columns.guid))
+                query = query.where(receivers.columns.ip == ip)
                 query = query.where(receivers.columns.port == port)
+                #print(str(query))
                 ResultProxy = conn.execute(query)
                 ResultSet = ResultProxy.fetchall()                
                 for row in ResultSet:
@@ -306,6 +300,10 @@ class DB():
             state = False
         s1, s2, s3, s4 = (), (), (), ()
         with self.engine.connect() as conn:
+            # Get guide from satellite
+            guid_sat = list(self.get_satellites(name = satellite).items())[0][0]
+            guid_mod = self.get_receiver_authentication(model = model)[model][2]
+            #
             metadata = sa.MetaData()
             receivers = sa.Table('receivers', metadata, autoload = True, autoload_with = conn)
             try:
@@ -336,7 +334,7 @@ class DB():
             except:
                 s3 = ("An error occurred while updating the receiver (password). ", False)
             try:
-                query = sa.update(receivers).values(model = model, satellite = satellite, state = state)
+                query = sa.update(receivers).values(model = guid_mod, satellite = guid_sat, state = state)
                 query = query.where(receivers.columns.ip == ip)
                 query = query.where(receivers.columns.port == port)
                 ResultProxy = conn.execute(query)
