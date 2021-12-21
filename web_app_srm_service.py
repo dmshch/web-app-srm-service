@@ -84,7 +84,7 @@ def api_monitoring():
     for item in in_list:
         [item.pop(key) for key in ['login', 'password', 'state']]
     out_json = json.dumps(in_list)
-    print(out_json)
+    #print(out_json)
     return str(out_json)
 
 # API v1.0 - GET ONE

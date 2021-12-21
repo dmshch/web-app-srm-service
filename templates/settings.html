@@ -56,7 +56,9 @@
 					<input type="text" id="alarm_critical" placeholder="{{ values['alarm_critical'] }}" name="alarm_critical">
 					<label for="CN"  > - color for alarm_critical</label>
 					<br>
-				
+					<br>
+					<br>
+					<button type="submit" onClick="return window.confirm('Update settings?');">Update</button>				
 				{% elif path == "users" %}
 				
 					<h4>Current values:</h4>
@@ -86,7 +88,9 @@
 					</select></p>
 					
 					<input type="password" id="password" placeholder="new password" name="password">
-				
+					<br>
+					<br>
+					<button type="submit" onClick="return window.confirm('Update settings?');">Update</button>
 				{% elif path == "receivers" %}
 				
 					<h4>Current values:</h4>
@@ -125,7 +129,9 @@
 					<br>
 					<input type="password" id="password" placeholder="password" name="password">
 					<label for="password"> - new password</label>
-
+					<br>
+					<br>
+					<button type="submit" onClick="return window.confirm('Update settings? The new parameters will be saved as they are.');">Update</button>
 				{% elif path == "satellites" %}
 				
 					<form action="" method="post">
@@ -157,11 +163,10 @@
 						</tbody>
 					{% endfor %}
 					</table>
-
+					<br>
+					<br>
+					<button type="submit" onClick="return window.confirm('Update settings?');">Update</button>
 				{% endif %}
-				<br>
-				<br>
-				<button type="submit" onClick="return window.confirm('Update settings?');">Update</button>
 			</form>
 
 	
