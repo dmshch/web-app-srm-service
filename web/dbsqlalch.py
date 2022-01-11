@@ -358,7 +358,6 @@ class DB():
         l_m = []
         date_time = []
         time = int(time)
-
         cur_t = datetime.now()
         
         with self.engine.connect() as conn:
@@ -367,12 +366,11 @@ class DB():
             query = sa.select([stats])
             query = query.where(stats.columns.ip == ip)
             query = query.where(stats.columns.port == port)
-            if time == 0:
-                pass
-            else:
+            if time != 0:
                 hours = timedelta(hours = time)
-                temp = (cur_t - hours).isoformat()
-                query = query.where(stats.columns.date_time >= temp)
+                limit_time = (cur_t - hours).isoformat()
+                query = query.where(stats.columns.date_time >= limit_time)
+            query = query.order_by(sa.asc(stats.columns.date_time))
             
             # Get current time
             #dt = datetime.datetime.now().strftime("%G %b %d %H:%M")
