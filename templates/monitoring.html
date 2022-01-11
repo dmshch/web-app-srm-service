@@ -28,7 +28,7 @@
 						<th> Eb/NO(dB) </th>
 						<th> Link Margin (dB) </th>
 						<th> Time of update </th>
-						<th> Services </th>
+						<th> Stats </th>
 					</tr>
 				</thead>
 			{% for value in final_list %}
@@ -59,7 +59,7 @@
 						<td> {{ value.eb_no }} </td>
 						<td> {{ value.l_m }} </td>	
 						<td> {{ value.time }} </td>
-						<td bgcolor="white"> <a href="/services/{{ value.ip}}/{{ value.port }}"> Detail </a> </td>	
+						<td bgcolor="white"> <a href="/statistics/{{ value.ip}}/{{ value.port }}/1"> Detail </a> </td>	
 					</tr>
 				</tbody>
 			{% endfor %}

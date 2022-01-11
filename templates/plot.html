@@ -1,0 +1,13 @@
+<a href="/monitoring/all">Back to monitoring</a>
+<br>
+Last: <a href="/statistics/{{ ip}}/{{ port }}/1">1 hour</a>, 
+<a href="/statistics/{{ip}}/{{ port }}/6"/>6 hours</a>, 
+<a href="/statistics/{{ip}}/{{ port }}/12">12 hours</a>, 
+<a href="/statistics/{{ip}}/{{ port }}/24">24 hours</a>, 
+<a href="/statistics/{{ip}}/{{ port }}/0">all time</a>.
+
+<h3>Statistic for receiver with ip="{{ ip }}" and port ="{{ port }}"</h3>
+    <img src="/matplot-as-image-{{ip}}-{{port}}-{{time}}.png"
+         alt="Plot for receiver, ip={{ ip }}, port ={{ port }}
+         height="200"
+    >

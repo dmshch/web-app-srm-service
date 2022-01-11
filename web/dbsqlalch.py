@@ -4,6 +4,13 @@ import sqlalchemy as sa
 import ipaddress
 import json
 import uuid
+# Statistic
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+import io
+import numpy as np
+from datetime import datetime
+from datetime import timedelta
 
 keys = ('guid', 'ip', 'port', 'model', 'satellite', 'login', 'password', 'state', 'time', 'c_n', 'eb_no', 'l_m')
 
@@ -97,11 +104,11 @@ class DB():
                         query = sa.update(settings).values(value = settings_dict[key])
                         query = query.where(settings.columns.name == key)
                         ResultProxy = conn.execute(query)
-                        status = (key + " has been updated. ", True)
+                        status = ("Data has been updated. " , True)
                     except:
-                        status = ("An error occurred while updating the settings.", False)
+                        status = ("An error occurred while updating the settings:" + key + ".", False)
         self.engine.dispose()
-        return (status, )
+        return status
 
     def get_satellites(self, name = None, guid = None):
         with self.engine.connect() as conn:
@@ -140,7 +147,7 @@ class DB():
             except:
                 status = ("An error occurred while adding the receiver.", False)
         self.engine.dispose()
-        return (status, )
+        return status
     
     def get_receiver_authentication(self, model = None):
         with self.engine.connect() as conn:
@@ -162,7 +169,7 @@ class DB():
         s1, s2 = (), ()
         # Get old data
         old_data = self.get_receiver_authentication(model = receiver)
-        print(old_data)
+        #print(old_data)
         with self.engine.connect() as conn:
             try:
                 metadata = sa.MetaData()
@@ -195,7 +202,7 @@ class DB():
             return dict_users
 
     def set_user_authentication(self, user, password):
-        s1, s2, s3 = (), (), ()
+        status = ()
         if user != None and password != "":
             with self.engine.connect() as conn:
                 try:
@@ -205,15 +212,16 @@ class DB():
                     query = query.where(users.columns.login == user)
                     ResultProxy = conn.execute(query)
                 except:
-                    s1 = ("An error occurred while updating the password.", False)
+                    status = ("An error occurred while updating the password.", False)
         if user == None:
-            s2 = ("An error occurred while updating the password: you must choose the username. ", False)
+            status = ("An error occurred while updating the password: you must choose the username. ", False)
         if passwd == "":
-            s3 = ("An error occurred while updating the password: you must enter the password. ", False)
+            status = ("An error occurred while updating the password: you must enter the password. ", False)
         self.engine.dispose()
-        return (s1, s2, s3)
+        return status
 
     def add_receiver(self, ip, model, satellite, login, password, port, state):
+        status = ()
         if state == "used":
             state = True
         if state == "don't used":
@@ -343,3 +351,64 @@ class DB():
                 s4 = ("An error occurred while updating the model/satellite/state. ", False)
         self.engine.dispose()
         return (s1, s2, s3, s4)
+
+    def get_stats(self, ip, port, time):
+        c_n = []
+        eb_no = []
+        l_m = []
+        date_time = []
+        time = int(time)
+
+        cur_t = datetime.now()
+        
+        with self.engine.connect() as conn:
+            metadata = sa.MetaData()
+            stats = sa.Table('statistics', metadata, autoload=True, autoload_with=conn)
+            query = sa.select([stats])
+            query = query.where(stats.columns.ip == ip)
+            query = query.where(stats.columns.port == port)
+            if time == 0:
+                pass
+            else:
+                hours = timedelta(hours = time)
+                temp = (cur_t - hours).isoformat()
+                query = query.where(stats.columns.date_time >= temp)
+            
+            # Get current time
+            #dt = datetime.datetime.now().strftime("%G %b %d %H:%M")
+            
+            ResultProxy = conn.execute(query)
+            ResultSet = ResultProxy.fetchall()
+            for row in ResultSet:
+                try:
+                    c_n.append(float(row[2]))
+                    eb_no.append(float(row[3]))
+                    l_m.append(float(row[4]))
+                    #d_t = datetime.strptime(row[5], '%Y %b %d %H:%M')
+                    #date_time.append(str(d_t.hour) + ":" + str(d_t.minute))
+                    date_time.append(row[5])
+                except BaseException as err:
+                    print(err)
+                    continue
+
+            self.engine.dispose()
+
+        # Make the plot
+        fig, ax = plt.subplots(figsize=(10, 2.7), layout='constrained')  # Create a figure containing a single axes.
+        plt.xticks(rotation=90)
+
+        max_value_y = max(max(c_n), max(eb_no), max(l_m))
+        min_value_y = min(min(c_n), min(eb_no), min(l_m))
+        #plt.xticks(np.arange(0, len(date_time), 5))
+        plt.yticks(np.arange(round(min_value_y), round(max_value_y), 1))
+
+        ax.plot(date_time, c_n, label='C/N')  # Plot some data on the axes.
+        ax.plot(date_time, eb_no, label='Eb/NO')  # Plot more data on the axes...
+        ax.plot(date_time, l_m, label='Link Margin')  # ... and some more.
+        ax.set_xlabel('Time (dd hh:mm)')  # Add an x-label to the axes.
+        ax.set_ylabel('Values (dB)')  # Add a y-label to the axes.
+        ax.set_title("Saved statistics")  # Add a title to the axes.
+        ax.legend();  # Add a legend.
+        output = io.BytesIO()
+        FigureCanvasAgg(fig).print_png(output)
+        return output.getvalue()

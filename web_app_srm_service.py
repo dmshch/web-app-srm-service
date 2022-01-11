@@ -5,6 +5,8 @@ from flask import request
 from flask import redirect, url_for
 from flask import render_template
 from flask import flash
+from flask import send_file
+from flask import Response
 from web import dbsqlalch
 from web import settings
 from web import users
@@ -95,6 +97,12 @@ def api_monitoring_ip_port(ip, port):
     out_json = json.dumps(receiver)
     return str(out_json)
 
+# API v1.0 - GET STATISTICS FOR ONE RECEIVER
+@application.route('/api/v1.0/monitoring/<ip>/<port>/<time>')
+def api_monitoring_ip_port_stats(ip, port, time):
+    data = dbsqlalch.DB().get_stats(ip, port, time)
+    return Response(data, mimetype='image/png')
+
 # Get info about all receivers
 @application.route('/receivers/', methods = ['GET'])
 @flask_login.login_required
@@ -141,6 +149,16 @@ def modify_receiver(ip, port, action):
         flash(message, "normal" if status else "error")
     return redirect(url_for('get_receivers'))
 
+# Statistics
+@application.route('/statistics/<ip>/<port>/<time>', methods = ['GET'])
+def get_statistics(ip, port, time):
+    return render_template('plot.html', ip = ip, port = port, time = time)
+
+@application.route("/matplot-as-image-<ip>-<port>-<time>.png")
+def plot_png(ip, port, time):
+    data = dbsqlalch.DB().get_stats(ip, port, time)
+    return Response(data, mimetype='image/png')
+
 @application.route('/settings/<path>', methods=['POST', 'GET'])
 @flask_login.login_required
 def settings(path):
@@ -172,10 +190,9 @@ def settings(path):
         if request.method == 'POST':
             message_tuple = dbsqlalch.DB().add_satellites(request.form['satellite'])
 
-    for m in message_tuple:
-        if len(m) != 0:
-            message, status = m
-            flash(message, "normal" if status else "error")
+    if len(message_tuple) != 0:
+        message, status = message_tuple
+        flash(message, "normal" if status else "error")
 
     if request.method == 'POST':
         return redirect('/settings/' + path)
