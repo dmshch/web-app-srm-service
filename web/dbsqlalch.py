@@ -72,7 +72,8 @@ class DB():
                 list_of_data.append(d)
             sortBySat = lambda list_of_data: list_of_data["satellite"]
             list_of_data.sort(key = sortBySat)
-            self.engine.dispose()
+            conn.close()
+        self.engine.dispose()
         return list_of_data
             
     def get_settings(self):
@@ -299,6 +300,7 @@ class DB():
                 status = ("", True)
             except:
                 status = ("An error occurred while getting the data from DB.", False)
+            conn.close()
         self.engine.dispose()
         return (status, d)
 
@@ -382,8 +384,8 @@ class DB():
                 except BaseException as err:
                     print(err)
                     continue
-
-            self.engine.dispose()
+            conn.close()
+        self.engine.dispose()
 
         # Make the plot
         fig, ax = plt.subplots(figsize=(4.5, 1.2), layout='constrained')  # Create a figure containing a single axes.
@@ -456,8 +458,8 @@ class DB():
                 except BaseException as err:
                     print(err)
                     continue
-
-            self.engine.dispose()
+            conn.close()
+        self.engine.dispose()
 
         # Make the plot
         fig, ax = plt.subplots(figsize=(10, 2.7), layout='constrained')  # Create a figure containing a single axes.
