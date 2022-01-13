@@ -86,7 +86,6 @@ def api_monitoring():
     for item in in_list:
         [item.pop(key) for key in ['login', 'password', 'state']]
     out_json = json.dumps(in_list)
-    #print(out_json)
     return str(out_json)
 
 # API v1.0 - GET ONE
@@ -100,7 +99,7 @@ def api_monitoring_ip_port(ip, port):
 # API v1.0 - GET STATISTICS FOR ONE RECEIVER
 @application.route('/api/v1.0/monitoring/<ip>/<port>/<time>')
 def api_monitoring_ip_port_stats(ip, port, time):
-    data = dbsqlalch.DB().get_stats(ip, port, time)
+    data = dbsqlalch.DB().get_stats_for_api(ip, port, time)
     return Response(data, mimetype='image/png')
 
 # Get info about all receivers
@@ -152,7 +151,7 @@ def modify_receiver(ip, port, action):
 # Statistics
 @application.route('/statistics/<ip>/<port>/<time>', methods = ['GET'])
 def get_statistics(ip, port, time):
-    return render_template('plot.html', ip = ip, port = port, time = time)
+    return render_template('plot.html', ip = ip, port = port, time = time, satellite = dbsqlalch.DB().get_receiver(ip, port)[1]['satellite'])
 
 @application.route("/matplot-as-image-<ip>-<port>-<time>.png")
 def plot_png(ip, port, time):

@@ -7,6 +7,7 @@ import uuid
 # Statistic
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+import matplotlib.dates as mdates
 import io
 import numpy as np
 from datetime import datetime
@@ -72,7 +73,7 @@ class DB():
             sortBySat = lambda list_of_data: list_of_data["satellite"]
             list_of_data.sort(key = sortBySat)
             self.engine.dispose()
-            return list_of_data
+        return list_of_data
             
     def get_settings(self):
         with self.engine.connect() as conn:
@@ -85,7 +86,7 @@ class DB():
             for row in ResultSet:
                 dict_settings[row[0]] = row[1]
             self.engine.dispose()
-            return dict_settings
+        return dict_settings
 
     def set_settings(self, settings_dict):
         status = ()
@@ -352,6 +353,73 @@ class DB():
         self.engine.dispose()
         return (s1, s2, s3, s4)
 
+    def get_stats_for_api(self, ip, port, time):
+        c_n = []
+        eb_no = []
+        date_time = []
+        time = int(time)
+        cur_t = datetime.now()
+
+        with self.engine.connect() as conn:
+            metadata = sa.MetaData()
+            stats = sa.Table('statistics', metadata, autoload=True, autoload_with=conn)
+            query = sa.select([stats])
+            query = query.where(stats.columns.ip == ip)
+            query = query.where(stats.columns.port == port)
+            if time != 0:
+                hours = timedelta(hours = time)
+                limit_time = (cur_t - hours).isoformat()
+                query = query.where(stats.columns.date_time >= limit_time)
+            query = query.order_by(sa.asc(stats.columns.date_time))
+
+            ResultProxy = conn.execute(query)
+            ResultSet = ResultProxy.fetchall()
+            for row in ResultSet:
+                try:
+                    c_n.append(float(row[2]))
+                    eb_no.append(float(row[3]))
+                    date_time.append(row[5])
+                except BaseException as err:
+                    print(err)
+                    continue
+
+            self.engine.dispose()
+
+        # Make the plot
+        fig, ax = plt.subplots(figsize=(4.5, 1.2), layout='constrained')  # Create a figure containing a single axes.
+
+        max_value_y = max(max(c_n), max(eb_no))
+        min_value_y = min(min(c_n), min(eb_no))
+        
+        t = [min(date_time), max(date_time)]
+        plt.xticks(t,t)
+
+        #plt.xticks(np.arange(min(date_time), max(date_time), 1.0))
+        #plt.yticks(np.arange(0, round(max_value_y), 2))
+        plt.ylim([min_value_y - 1, max_value_y + 1])
+
+        ax.plot(date_time, c_n, 'b', label = "C/N")  # Plot some data on the axes
+        ax.plot(date_time, eb_no, 'r', label = "Eb/NO")  # Plot more data on the axes
+        if time == 1 or time == 6 or time == 12 or time == 24:
+            myFmt = mdates.DateFormatter('%H:%M')
+        elif time == 0:
+            myFmt = mdates.DateFormatter('%d/%m %H:%M')
+        ax.xaxis.set_major_formatter(myFmt)
+
+        if time == 0:
+            time_desc = "Time (all saved data)"
+        else:
+            time_desc = "Time, last " + str(time) + " hour(s)"
+        #ax.set_xlabel(time_desc)  # Add an x-label to the axes
+        ax.set_ylabel('Values (dB)')  # Add a y-label to the axes
+        ax.set_title("ip:" + ip + " port:" + port, fontdict = {'fontsize': 10, 'fontweight': 'normal'})  # Add a title to the axes
+        ax.legend(fontsize = 8);  # Add a legend
+
+        output = io.BytesIO()
+        FigureCanvasAgg(fig).print_png(output)
+        return output.getvalue()
+
+
     def get_stats(self, ip, port, time):
         c_n = []
         eb_no = []
@@ -393,19 +461,24 @@ class DB():
 
         # Make the plot
         fig, ax = plt.subplots(figsize=(10, 2.7), layout='constrained')  # Create a figure containing a single axes.
-        plt.xticks(rotation=90)
+        #plt.xticks(rotation=90)
 
-        max_value_y = max(max(c_n), max(eb_no), max(l_m))
-        min_value_y = min(min(c_n), min(eb_no), min(l_m))
+        max_value_y = max(max(c_n), max(eb_no))
+        min_value_y = min(min(c_n), min(eb_no))
+        
         #plt.xticks(np.arange(0, len(date_time), 5))
         plt.yticks(np.arange(round(min_value_y), round(max_value_y), 1))
 
         ax.plot(date_time, c_n, label='C/N')  # Plot some data on the axes.
         ax.plot(date_time, eb_no, label='Eb/NO')  # Plot more data on the axes...
-        ax.plot(date_time, l_m, label='Link Margin')  # ... and some more.
-        ax.set_xlabel('Time (dd hh:mm)')  # Add an x-label to the axes.
+        #ax.plot(date_time, l_m, label='Link Margin')  # ... and some more.
+        if time == 0:
+            time_desc = "Time (all saved data)"
+        else:
+            time_desc = "Time, last " + str(time) + " hour(s)"
+        ax.set_xlabel(time_desc)  # Add an x-label to the axes.
         ax.set_ylabel('Values (dB)')  # Add a y-label to the axes.
-        ax.set_title("Saved statistics")  # Add a title to the axes.
+        ax.set_title("ip:" + ip + " port:" + port)  # Add a title to the axes.
         ax.legend();  # Add a legend.
         output = io.BytesIO()
         FigureCanvasAgg(fig).print_png(output)
