@@ -388,7 +388,7 @@ class DB():
         self.engine.dispose()
 
         # Make the plot
-        fig, ax = plt.subplots(figsize=(4.5, 1.2), layout='constrained')  # Create a figure containing a single axes.
+        fig, ax = plt.subplots(figsize=(4.3, 1.2), layout='constrained')  # Create a figure containing a single axes.
 
         max_value_y = max(max(c_n), max(eb_no))
         min_value_y = min(min(c_n), min(eb_no))
