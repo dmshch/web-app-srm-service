@@ -399,6 +399,8 @@ class DB():
         #plt.xticks(np.arange(min(date_time), max(date_time), 1.0))
         #plt.yticks(np.arange(0, round(max_value_y), 2))
         plt.ylim([min_value_y - 1, max_value_y + 1])
+        plt.xticks(fontsize=9)
+        plt.yticks(fontsize=9)
 
         ax.plot(date_time, c_n, 'b', label = "C/N")  # Plot some data on the axes
         ax.plot(date_time, eb_no, 'r', label = "Eb/NO")  # Plot more data on the axes
@@ -413,8 +415,8 @@ class DB():
         else:
             time_desc = "Time, last " + str(time) + " hour(s)"
         #ax.set_xlabel(time_desc)  # Add an x-label to the axes
-        ax.set_ylabel('Values (dB)')  # Add a y-label to the axes
-        ax.set_title("ip:" + ip + " port:" + port, fontdict = {'fontsize': 10, 'fontweight': 'normal'})  # Add a title to the axes
+        ax.set_ylabel('Values (dB)', fontdict = {'fontsize': 9, 'fontweight': 'normal'})  # Add a y-label to the axes
+        ax.set_title("ip:" + ip + " port:" + port, fontdict = {'fontsize': 9, 'fontweight': 'normal'})  # Add a title to the axes
         ax.legend(fontsize = 8);  # Add a legend
 
         output = io.BytesIO()
