@@ -13,7 +13,7 @@ import numpy as np
 from datetime import datetime
 from datetime import timedelta
 
-keys = ('guid', 'ip', 'port', 'model', 'satellite', 'login', 'password', 'state', 'time', 'c_n', 'eb_no', 'l_m')
+keys = ('guid', 'ip', 'port', 'model', 'satellite', 'login', 'password', 'state', 'time', 'c_n', 'eb_no', 'l_m', 'service')
 
 class DB():
     engine = None
@@ -27,11 +27,11 @@ class DB():
         self.engine = sa.create_engine(path)
 
     def check_value(self, d, c_n_boundary, eb_no_boundary):
-        if d["c_n"]  == "not initialized" or d['eb_no'] == "not initialized":
+        if d["c_n"]  == "connection error" or d['eb_no'] == "connection error":
             d["alarm"] = "alarm_medium"
         elif d["c_n"]  == "new" or d['eb_no'] == "new":
             d["alarm"] = "alarm_low"
-        elif d["c_n"] == "0" or d['eb_no'] == "0":
+        elif d["c_n"] == "0" or d['eb_no'] == "0" or d["c_n"] == "parsing error" or d['eb_no'] == "parsing error":
             d["alarm"] = "alarm_critical"
             # need try
         elif float(d["c_n"]) <= float(c_n_boundary) or float(d["eb_no"]) <= float(eb_no_boundary):
@@ -287,13 +287,14 @@ class DB():
                 satellites = sa.Table('satellites', metadata, autoload = True, autoload_with = conn)
                 models = sa.Table('receiver_models', metadata, autoload = True, autoload_with = conn)
                 
-                query = sa.select([receivers.columns.guid, receivers.columns.ip, receivers.columns.port, models.columns.model, satellites.columns.name, receivers.columns.login, receivers.columns.password, receivers.columns.state, receivers.columns.time, receivers.columns.c_n, receivers.columns.eb_no, receivers.columns.l_m])
+                query = sa.select([receivers.columns.guid, receivers.columns.ip, receivers.columns.port, models.columns.model, satellites.columns.name, receivers.columns.login, receivers.columns.password, receivers.columns.state, receivers.columns.time, receivers.columns.c_n, receivers.columns.eb_no, receivers.columns.l_m, receivers.columns.service])
+                #query = sa.select([receivers])
                 query = query.select_from(receivers.join(satellites, receivers.columns.satellite == satellites.columns.guid).join(models, receivers.columns.model == models.columns.guid))
                 query = query.where(receivers.columns.ip == ip)
                 query = query.where(receivers.columns.port == port)
                 #print(str(query))
                 ResultProxy = conn.execute(query)
-                ResultSet = ResultProxy.fetchall()                
+                ResultSet = ResultProxy.fetchall()
                 for row in ResultSet:
                     d = dict(zip(keys, row))
                     d = self.check_value(d, c_n_boundary, eb_no_boundary)
@@ -417,8 +418,15 @@ class DB():
         #ax.set_xlabel(time_desc)  # Add an x-label to the axes
         ax.set_ylabel('Values (dB)', fontdict = {'fontsize': 9, 'fontweight': 'normal'})  # Add a y-label to the axes
         ax.set_title("ip:" + ip + " port:" + port, fontdict = {'fontsize': 9, 'fontweight': 'normal'})  # Add a title to the axes
+        
+        # Show the service
+        status, receiver = self.get_receiver(ip, port)
+        print(receiver)
+        if receiver["model"] == "proview2962":
+            ax.text(date_time[0], (min_value_y + max_value_y)/2, 'Service: "' + receiver["service"] + '"', style='italic', fontsize=7, bbox={'facecolor': 'green', 'alpha': 0.2, 'pad': 3})
+        
         ax.legend(fontsize = 8);  # Add a legend
-
+        
         output = io.BytesIO()
         FigureCanvasAgg(fig).print_png(output)
         return output.getvalue()
@@ -483,6 +491,12 @@ class DB():
         ax.set_xlabel(time_desc)  # Add an x-label to the axes.
         ax.set_ylabel('Values (dB)')  # Add a y-label to the axes.
         ax.set_title("ip:" + ip + " port:" + port)  # Add a title to the axes.
+        
+        # Show the service
+        status, receiver = self.get_receiver(ip, port)
+        if receiver["model"] == "proview2962":
+            ax.text(date_time[0], (min_value_y + max_value_y)/2, 'Service: "' + receiver["service"] + '"', style='italic', fontsize=9, bbox={'facecolor': 'green', 'alpha': 0.2, 'pad': 3})
+
         ax.legend();  # Add a legend.
         output = io.BytesIO()
         FigureCanvasAgg(fig).print_png(output)
