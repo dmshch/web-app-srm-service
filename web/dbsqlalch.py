@@ -383,8 +383,19 @@ class DB():
                     eb_no.append(float(row[3]))
                     date_time.append(row[5])
                 except BaseException as err:
-                    print(err)
-                    continue
+                    # ??? 
+                    if row[2] == "parsing error" or row[3] == "parsing error":
+                        c_n.append(0)
+                        eb_no.append(0)
+                        date_time.append(row[5])
+                        #print(err)
+                        continue
+                    elif row[2] == "connection error" or row[3] == "connection error":
+                        c_n.append(-1)
+                        eb_no.append(-1)
+                        date_time.append(row[5])
+                        #print(err)
+                        continue
             conn.close()
         self.engine.dispose()
 
