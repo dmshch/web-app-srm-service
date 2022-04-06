@@ -23,7 +23,7 @@ login_manager = flask_login.LoginManager()
 login_manager.init_app(application)
 
 # load users from db
-users_dict = dbsqlalch.DB().get_user_authentication()
+users_dict = dbsqlalch.get_user_authentication()
 
 @login_manager.user_loader
 def user_loader(login):
@@ -60,29 +60,29 @@ def unauthorized_handler():
 @application.route('/')
 @flask_login.login_required
 def main():
-    values = dbsqlalch.DB().get_settings()
+    values = dbsqlalch.get_settings()
     return render_template('index.html', name = 'Main', time = get_time(), values = values)
 
 # 
 @application.route('/monitoring/<satellite>')
 @flask_login.login_required
 def monitoring(satellite):
-    satellites = dbsqlalch.DB().get_satellites()
+    satellites = dbsqlalch.get_satellites()
     name = satellite
     if name == "all":
-        final_list = dbsqlalch.DB().get_receivers(state = True)
+        final_list = dbsqlalch.get_receivers(state = True)
         name = "All"
     else:
-        final_list = dbsqlalch.DB().get_receivers(satellite = satellite, state = True)
+        final_list = dbsqlalch.get_receivers(satellite = satellite, state = True)
     final_list.sort(key = lambda final_list: final_list["ip"])
     final_list.sort(key = lambda final_list: final_list["satellite"])
-    settings = dbsqlalch.DB().get_settings()
+    settings = dbsqlalch.get_settings()
     return render_template('index.html', name = name, time = get_time(), final_list = final_list, settings = settings, satellites = satellites)
 
 # API v1.0 - GET ALL
 @application.route('/api/v1.0/monitoring/')
 def api_monitoring():
-    in_list = dbsqlalch.DB().get_receivers(state = True)
+    in_list = dbsqlalch.get_receivers(state = True)
     for item in in_list:
         [item.pop(key) for key in ['login', 'password', 'state']]
     out_json = json.dumps(in_list)
@@ -106,9 +106,9 @@ def api_monitoring_ip_port_stats(ip, port, time):
 @application.route('/receivers/', methods = ['GET'])
 @flask_login.login_required
 def get_receivers():
-    types_of_receivers = dbsqlalch.DB().get_receiver_authentication()
-    satellites = dbsqlalch.DB().get_satellites()
-    final_list = dbsqlalch.DB().get_receivers()
+    types_of_receivers = dbsqlalch.get_receiver_authentication()
+    satellites = dbsqlalch.get_satellites()
+    final_list = dbsqlalch.get_receivers()
     final_list.sort(key = lambda final_list: final_list["ip"])
     final_list.sort(key = lambda final_list: final_list["satellite"])
     return render_template('index.html', name = 'Receivers', time=get_time(), list_of_receivers = final_list, satellites = satellites, types_of_receivers = types_of_receivers)
@@ -117,7 +117,7 @@ def get_receivers():
 @application.route('/receivers/', methods = ['POST'])
 @flask_login.login_required
 def create_receivers():
-    message, status = dbsqlalch.DB().add_receiver(request.form['ip'], request.form['model'], request.form['satellite'], request.form['login'], request.form['password'], request.form['port'], request.form['state'])
+    message, status = dbsqlalch.add_receiver(request.form['ip'], request.form['model'], request.form['satellite'], request.form['login'], request.form['password'], request.form['port'], request.form['state'])
     flash(message, "normal" if status else "error")
     return redirect(url_for('get_receivers'))
 
@@ -125,8 +125,8 @@ def create_receivers():
 @application.route('/receivers/<ip>/<port>', methods = ['GET'])
 def get_receiver(ip, port):
     status = ""
-    satellites = dbsqlalch.DB().get_satellites()
-    types_of_receivers = dbsqlalch.DB().get_receiver_authentication()
+    satellites = dbsqlalch.get_satellites()
+    types_of_receivers = dbsqlalch.get_receiver_authentication()
     # receiver is dict -> keys: ip, model, satellite, login, password, port, state
     message_tuple, receiver = dbsqlalch.DB().get_receiver(ip, port)
     message, status = message_tuple
@@ -144,7 +144,7 @@ def modify_receiver(ip, port, action):
                 flash(message, "normal" if status else "error")
         return redirect(url_for('get_receivers'))
     if action == "delete":
-        message, status = dbsqlalch.DB().delete_receiver(ip, port)
+        message, status = dbsqlalch.delete_receiver(ip, port)
         flash(message, "normal" if status else "error")
     return redirect(url_for('get_receivers'))
 
@@ -164,28 +164,28 @@ def settings(path):
     message_tuple = ()
     if flask_login.current_user.get_id() == "monitor":
         flash("You do not have permission to view this page.")
-        values = dbsqlalch.DB().get_settings()
+        values = dbsqlalch.get_settings()
         return render_template('index.html', name='Main', time=get_time(), values= values)
     status = ""
     values = dict()
     if path == "global":
         if request.method == 'GET':
-            values = dbsqlalch.DB().get_settings()
+            values = dbsqlalch.get_settings()
         if request.method == 'POST':
-            message_tuple = dbsqlalch.DB().set_settings(request.form)
+            message_tuple = dbsqlalch.set_settings(request.form) 
     elif path == "users":
         if request.method == 'GET':
-            values = dbsqlalch.DB().get_user_authentication()
+            values = dbsqlalch.get_user_authentication()
         if request.method == 'POST':
-            message_tuple = dbsqlalch.DB().set_user_authentication(request.form.get('user_select'), request.form['password'])
+            message_tuple = dbsqlalch.set_user_authentication(request.form.get('user_select'), request.form['password'])
     elif path == "receivers":
         if request.method == 'GET':
-            values = dbsqlalch.DB().get_receiver_authentication()
+            values = dbsqlalch.get_receiver_authentication()
         if request.method == 'POST':
             message_tuple = dbsqlalch.DB().set_receiver_authentication(request.form.get('receiver_select'), request.form['login'] ,request.form['password'])
     elif path == "satellites":
         if request.method == 'GET':
-            values = dbsqlalch.DB().get_satellites()
+            values = dbsqlalch.get_satellites()
         if request.method == 'POST':
             message_tuple = dbsqlalch.DB().add_satellites(request.form['satellite'])
 

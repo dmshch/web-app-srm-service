@@ -28,7 +28,10 @@
 						<th> Eb/NO(dB) </th>
 						<th> Link Margin (dB) </th>
 						<th> Time of update </th>
-						<th> Stats </th>
+						<th> Plot, png </th>
+						<th> API, png </th>
+						<th> Service Number </th>
+						<th> CC errors </th>
 					</tr>
 				</thead>
 			{% for value in final_list %}
@@ -59,7 +62,10 @@
 						<td> {{ value.eb_no }} </td>
 						<td> {{ value.l_m }} </td>	
 						<td> {{ value.time }} </td>
-						<td bgcolor="white"> <a href="/statistics/{{ value.ip}}/{{ value.port }}/1"> Detail </a> </td>	
+						<td bgcolor="white"> <a href="/statistics/{{ value.ip}}/{{ value.port }}/1"> Detail </a> </td>
+						<td bgcolor="white"> <a href="/api/v1.0/monitoring/{{ value.ip}}/{{ value.port }}/1"> Detail </a> </td>
+						<td bgcolor="white"> {{ value.service }} </td>
+						<td bgcolor="white"> not initialized </td>
 					</tr>
 				</tbody>
 			{% endfor %}
