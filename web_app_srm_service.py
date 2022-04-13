@@ -91,7 +91,7 @@ def api_monitoring():
 # API v1.0 - GET ONE
 @application.route('/api/v1.0/monitoring/<ip>/<port>')
 def api_monitoring_ip_port(ip, port):
-    status, receiver = dbsqlalch.DB().get_receiver(ip, port)
+    status, receiver = dbsqlalch.get_receiver(ip, port)
     [receiver.pop(key) for key in ['login', 'password', 'state']]
     out_json = json.dumps(receiver)
     return str(out_json)
@@ -99,7 +99,7 @@ def api_monitoring_ip_port(ip, port):
 # API v1.0 - GET STATISTICS FOR ONE RECEIVER
 @application.route('/api/v1.0/monitoring/<ip>/<port>/<time>')
 def api_monitoring_ip_port_stats(ip, port, time):
-    data = dbsqlalch.DB().get_stats_for_api(ip, port, time)
+    data = dbsqlalch.get_stats_for_api(ip, port, time)
     return Response(data, mimetype='image/png')
 
 # Get info about all receivers
@@ -128,7 +128,7 @@ def get_receiver(ip, port):
     satellites = dbsqlalch.get_satellites()
     types_of_receivers = dbsqlalch.get_receiver_authentication()
     # receiver is dict -> keys: ip, model, satellite, login, password, port, state
-    message_tuple, receiver = dbsqlalch.DB().get_receiver(ip, port)
+    message_tuple, receiver = dbsqlalch.get_receiver(ip, port)
     message, status = message_tuple
     flash(message, "normal" if status else "error")
     return render_template('index.html', name='Edit', time=get_time(), receiver=receiver, satellites= satellites, types_of_receivers = types_of_receivers)
@@ -137,7 +137,7 @@ def get_receiver(ip, port):
 @application.route('/receivers/<ip>/<port>/<action>', methods = ['POST'])
 def modify_receiver(ip, port, action):
     if action == "update":
-        message_tuple = dbsqlalch.DB().update_receiver(ip, request.form['model'], request.form['satellite'], request.form['login'], request.form['password'], port, request.form['state'])
+        message_tuple = dbsqlalch.update_receiver(ip, request.form['model'], request.form['satellite'], request.form['login'], request.form['password'], port, request.form['state'])
         for m in message_tuple:
             if len(m) != 0:
                 message, status = m
@@ -151,11 +151,11 @@ def modify_receiver(ip, port, action):
 # Statistics
 @application.route('/statistics/<ip>/<port>/<time>', methods = ['GET'])
 def get_statistics(ip, port, time):
-    return render_template('plot.html', ip = ip, port = port, time = time, satellite = dbsqlalch.DB().get_receiver(ip, port)[1]['satellite'])
+    return render_template('plot.html', ip = ip, port = port, time = time, satellite = dbsqlalch.get_receiver(ip, port)[1]['satellite'])
 
 @application.route("/matplot-as-image-<ip>-<port>-<time>.png")
 def plot_png(ip, port, time):
-    data = dbsqlalch.DB().get_stats(ip, port, time)
+    data = dbsqlalch.get_stats(ip, port, time)
     return Response(data, mimetype='image/png')
 
 @application.route('/settings/<path>', methods=['POST', 'GET'])
@@ -182,12 +182,12 @@ def settings(path):
         if request.method == 'GET':
             values = dbsqlalch.get_receiver_authentication()
         if request.method == 'POST':
-            message_tuple = dbsqlalch.DB().set_receiver_authentication(request.form.get('receiver_select'), request.form['login'] ,request.form['password'])
+            message_tuple = dbsqlalch.set_receiver_authentication(request.form.get('receiver_select'), request.form['login'] ,request.form['password'])
     elif path == "satellites":
         if request.method == 'GET':
             values = dbsqlalch.get_satellites()
         if request.method == 'POST':
-            message_tuple = dbsqlalch.DB().add_satellites(request.form['satellite'])
+            message_tuple = dbsqlalch.add_satellites(request.form['satellite'])
 
     if len(message_tuple) != 0:
         message, status = message_tuple
