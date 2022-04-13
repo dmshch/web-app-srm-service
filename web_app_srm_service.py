@@ -84,15 +84,16 @@ def monitoring(satellite):
 def api_monitoring():
     in_list = dbsqlalch.get_receivers(state = True)
     for item in in_list:
-        [item.pop(key) for key in ['login', 'password', 'state']]
+        [item.pop(key) for key in ['login', 'password', 'state', 'guid']]
     out_json = json.dumps(in_list)
+    print(str(out_json))
     return str(out_json)
 
 # API v1.0 - GET ONE
 @application.route('/api/v1.0/monitoring/<ip>/<port>')
 def api_monitoring_ip_port(ip, port):
     status, receiver = dbsqlalch.get_receiver(ip, port)
-    [receiver.pop(key) for key in ['login', 'password', 'state']]
+    [receiver.pop(key) for key in ['login', 'password', 'state', 'guid']]
     out_json = json.dumps(receiver)
     return str(out_json)
 
