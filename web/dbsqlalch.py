@@ -22,14 +22,14 @@ from . import database
 
 session = database.SessionLocal()
 
-keys = ('guid', 'ip', 'port', 'model', 'satellite', 'login', 'password', 'state', 'time', 'c_n', 'eb_no', 'l_m', 'service')
+keys = ('guid', 'ip', 'port', 'model', 'satellite', 'login', 'password', 'state', 'time', 'c_n', 'eb_no', 'l_m', 'service', 'cc_delta')
 
 def check_value(d, c_n_boundary, eb_no_boundary):
     if d["c_n"]  == "connection error" or d['eb_no'] == "connection error":
         d["alarm"] = "alarm_medium"
     elif d["c_n"]  == "new" or d['eb_no'] == "new":
         d["alarm"] = "alarm_low"
-    elif d["c_n"] == "0" or d['eb_no'] == "0" or d["c_n"] == "parsing error" or d['eb_no'] == "parsing error":
+    elif d["c_n"] == "0.0" or d["c_n"] == "0" or d['eb_no'] == "0.0" or d['eb_no'] == "0" or d["c_n"] == "parsing error" or d['eb_no'] == "parsing error":
         d["alarm"] = "alarm_critical"
         # need try
     elif float(d["c_n"]) <= float(c_n_boundary) or float(d["eb_no"]) <= float(eb_no_boundary):
@@ -103,7 +103,7 @@ def get_receivers(satellite = None, state = None):
         result = session.query(Receiver, Satellite, ReceiverType).filter(Receiver.satellite==Satellite.guid).filter(Receiver.model==ReceiverType.guid).filter(Satellite.name==satellite).filter(Receiver.state==state).all()
 
     for r, s, r_t in result:
-        d = dict(zip(keys, [r.guid, r.ip, r.port, r_t.model, s.name, r.login, r.password, r.state, r.time, r.c_n, r.eb_no, r.l_m, r.service]))
+        d = dict(zip(keys, [r.guid, r.ip, r.port, r_t.model, s.name, r.login, r.password, r.state, r.time, r.c_n, r.eb_no, r.l_m, r.service, r.cc_delta]))
         d = check_value(d, c_n_boundary, eb_no_boundary)
         list_of_data.append(d)
     sortBySat = lambda list_of_data: list_of_data["satellite"]
