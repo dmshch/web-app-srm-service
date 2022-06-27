@@ -18,6 +18,7 @@ class Receiver(Base):
    eb_no = Column(String(250), nullable=False)
    l_m = Column(String(250), nullable=False)
    service = Column(String(250), nullable=False)
+   cc_delta = Column(String(250), nullable=False)
 
    def __repr__(self):
       return "ip: " + self.ip + "; port: " + self.port

@@ -173,7 +173,7 @@ def settings(path):
         if request.method == 'GET':
             values = dbsqlalch.get_settings()
         if request.method == 'POST':
-            message_tuple = dbsqlalch.set_settings(request.form) 
+            message_tuple = dbsqlalch.set_settings(request.form)
     elif path == "users":
         if request.method == 'GET':
             values = dbsqlalch.get_user_authentication()
