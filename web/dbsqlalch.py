@@ -32,7 +32,7 @@ def check_value(d, c_n_boundary, eb_no_boundary):
     elif d["c_n"] == "0.0" or d["c_n"] == "0" or d['eb_no'] == "0.0" or d['eb_no'] == "0" or d["c_n"] == "parsing error" or d['eb_no'] == "parsing error":
         d["alarm"] = "alarm_critical"
         # need try
-    elif float(d["c_n"]) <= float(c_n_boundary) or float(d["eb_no"]) <= float(eb_no_boundary):
+    elif float(d["c_n"]) <= float(c_n_boundary) or float(d["eb_no"]) <= float(eb_no_boundary) or float(d["cc_delta"]) >= 1000:
         d["alarm"] = "alarm_high"
     else:
         d["alarm"] = "alarm_normal"
@@ -199,7 +199,7 @@ def add_receiver(ip, model, satellite, login, password, port, state):
         else:
             status =  ("IP and port exists.", False)
     except BaseException as err:
-        print("here", err)
+        #print("here", err)
         status = ("An error occurred while adding the receiver.", False)
     session.close()
     return status
@@ -212,11 +212,11 @@ def get_receiver(ip, port):
     try:
         result = session.query(Receiver, Satellite, ReceiverType).filter(Receiver.satellite==Satellite.guid).filter(Receiver.model==ReceiverType.guid).filter(Receiver.ip==ip).filter(Receiver.port==port).all()
         for r, s, r_t in result:
-            d = dict(zip(keys, [r.guid, r.ip, r.port, r_t.model, s.name, r.login, r.password, r.state, r.time, r.c_n, r.eb_no, r.l_m, r.service]))
+            d = dict(zip(keys, [r.guid, r.ip, r.port, r_t.model, s.name, r.login, r.password, r.state, r.time, r.c_n, r.eb_no, r.l_m, r.service, r.cc_delta]))
             d = check_value(d, c_n_boundary, eb_no_boundary)
         status = ("", True)
     except BaseException as err:
-        print(err)
+        #print(err)
         status = ("An error occurred while getting the data from DB.", False)
     return (status, d)
 
@@ -258,7 +258,7 @@ def delete_receiver(ip, port):
         session.commit()
         status = ("Receiver has been deleted", True)
     except BaseException as err:
-        print(err)
+        #print(err)
         status = ("An error occurred while deleting the receiver.",False)
     session.close()
     return status
