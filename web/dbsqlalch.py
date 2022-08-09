@@ -122,7 +122,7 @@ def get_satellites(name = None, guid = None):
     session.close()
     return dict_satellites
 
-def add_satellites(satellite):
+def add_satellite(satellite):
     satellite = satellite.strip()
     status = ()
     try:
@@ -140,6 +140,38 @@ def add_satellites(satellite):
     session.commit()
     session.close()
     return status
+
+def delete_satellite(satellite):
+	status =()
+	try:
+		count = session.query(Receiver, Satellite).filter(Receiver.satellite==Satellite.guid).filter(Satellite.name==satellite).count()
+		if count == 0:
+			satellite = session.query(Satellite).filter(Satellite.name==satellite).one()
+			session.delete(satellite)
+			session.commit()
+			status = ("Satellite has been deleted", True)
+		else:
+			status = (f"{satellite} exists in the table receivers. You must delete this binding between all receivers and {satellite}.",False)
+	except BaseException as err:
+		status = ("An error occurred while deleting the satellite.",False)
+	session.close()
+	return status
+						
+def update_satellite(oldsatellite, newsatellite):
+	status =()
+	try:
+		count = session.query(Satellite).filter(Satellite.name==newsatellite).count()
+		if count == 0:
+			satellite = session.query(Satellite).filter_by(name = oldsatellite).first()
+			satellite.name = newsatellite
+			session.commit()
+			status = ("Satellite has updated.", True)
+		else:
+			status = ("The name {newsatellite} exists", False)
+	except BaseException as err:
+		status = ("An error occurred while updating the satellite.",False)
+	session.close()
+	return status
 
 def get_receiver_authentication(model = None):
     if model != None:

@@ -14,10 +14,10 @@
 		{% endif %}
 	{% endwith %}
 	
-			<form action="" method="post">
+			
 			
 				{% if path == "global" %}
-				
+			<form action="/settings/global/update" method="post">	
 					<h4>Period of update:</h4>
 					<input type="text"  id="time" placeholder="{{ values['period'] }}" name="time" disabled>
 					<label for="time"> - reception parameters update period (integer value).</label>
@@ -58,9 +58,12 @@
 					<br>
 					<br>
 					<br>
-					<button type="submit" onClick="return window.confirm('Update settings?');">Update</button>				
+					<button type="submit" onClick="return window.confirm('Update settings?');">Update</button>		
+			</form>
+			
+			
 				{% elif path == "users" %}
-				
+			<form action="" method="post">	
 					<h4>Current values:</h4>
 					
 					<table>
@@ -91,8 +94,10 @@
 					<br>
 					<br>
 					<button type="submit" onClick="return window.confirm('Update settings?');">Update</button>
+			</form>
+			
 				{% elif path == "receivers" %}
-				
+			<form action="" method="post">	
 					<h4>Current values:</h4>
 					
 					<table>
@@ -132,32 +137,38 @@
 					<br>
 					<br>
 					<button type="submit" onClick="return window.confirm('Update settings? The new parameters will be saved as they are.');">Update</button>
+			</form>
+			
 				{% elif path == "satellites" %}
 				
-					<form action="" method="post">
+					<form action="/settings/satellites/add" method="post">
 							<label for="ip">Satellite:</label>
 							<input type="text" id="satellite" placeholder="Enter value" name="satellite">
 							<button type="submit">Add</button>
-					</form>			
+					</form>
 					<br>
 					<h4>List of Satellites:</h4>
 					<table>
 						<thead>
 							<tr>
-								<!--<th> ID </th>-->
 								<th> Satellite </th>
 							</tr>
 						</thead>
 						{% for key,value in values.items() %}
 						<tbody>
 							<tr>
-								<!--<td bgcolor="#afdafc"> {{ key }} </td>-->
-								<td bgcolor="#7dc4fa"> {{ value }} </td>
+								<form action="/settings/satellites/update" method="post">
+								<input type="hidden" name="oldsatellite" id="oldsatellite" value="{{ value }}">
+								<td bgcolor="#7dc4fa"> <input name="newsatellite" id="newsatellite" value="{{ value }}"> </td>
 								<td>
-									<a href="/settings/satellites/edit/{{ value }}" onClick="return window.confirm('Edit satellite *{{ value }}*?')";>Edit</a>				
+									<button type="submit" onClick="return window.confirm('Update satellite = *{{ value }}*?');"> Update </button>
+								</form>
 								</td>
-								<td>	
-									<a href="/settings/satellites/delete/{{ value }}" onClick="return window.confirm('Delete satellite *{{ value }}*?');">Delete</a>
+								<td>
+									<form action="/settings/satellites/delete" method="post">
+									  <input type="hidden" name="satellite" id="satellite" value="{{ value }}">
+									  <button type="submit" onClick="return window.confirm('Delete satellite = *{{ value }}*?');"> Delete </button>
+									</form>
 								</td>
 							</tr>
 						</tbody>
@@ -165,8 +176,6 @@
 					</table>
 					<br>
 					<br>
-					<button type="submit" onClick="return window.confirm('Update settings?');">Update</button>
 				{% endif %}
-			</form>
 
 	

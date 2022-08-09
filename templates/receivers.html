@@ -102,12 +102,13 @@
 						<td bgcolor="#e6f4ff"> don't used </td>
 						{% endif %}
 						<td>
-								<a href="/receivers/{{ value.ip}}/{{ value.port }}">Edit</a>
+							<a href="/receivers/{{ value.ip}}/{{ value.port }}">Edit</a>
 						</td>
 						<td>
-							<form action="/receivers/{{ value.ip}}/{{ value.port}}/delete" method="post">
+							<a href="/receivers/{{ value.ip}}/{{ value.port}}/delete" onClick="return window.confirm('Delete receiver with ip = *{{ value.ip}}* and port = *{{ value.port}}*?');">Delete</a>
+							<!--form action="/receivers/{{ value.ip}}/{{ value.port}}/delete" method="post">
 								<button type="submit" onClick="return window.confirm('Delete receiver with ip = *{{ value.ip}}* and port = *{{ value.port}}*?');"> Delete </button>
-							</form>
+							</form-->
 						</td>
 					</tr>							
 				</tbody>
