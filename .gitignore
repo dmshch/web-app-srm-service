@@ -10,6 +10,7 @@
 test_classes_receivers.py
 static/css/
 static/js/
+static/scripts/
 *.db
 run_script.sh
 how_to_run.txt

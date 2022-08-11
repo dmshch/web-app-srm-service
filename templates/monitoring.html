@@ -1,4 +1,4 @@
-
+				<h4>You view {{satellite}} satellite(s).</h4> 
 				<!-- Dropdown -->
 					<td valign=top>
 						<ul>
@@ -14,7 +14,6 @@
 							</li>
 						</ul>
 					</td>
-
 
 			<table id="monitoring">
 				<thead>
@@ -36,7 +35,8 @@
 				</thead>
 			{% for value in final_list %}
 				<tbody>
-				
+					
+					<div id="{{ value.ip}}:{{ value.port }}">
 					{% if value.alarm == "alarm_medium" %}
 					<tr bgcolor="{{ settings.alarm_medium }}">
 					
@@ -53,27 +53,54 @@
 					<tr bgcolor="{{ settings.alarm_normal }}">
 					
 					{% endif %}
-						<td bgcolor="white"> {{ loop.index }} </td>
-						<td> <a href="/receivers/{{ value.ip}}/{{ value.port }}"> {{ value.ip }} </a> </td>
-						<td> {{ value.model }} </td>
-						<td> {{ value.satellite  }} </td>
-						<td> {{ value.port }} </td>
-						<td> {{ value.c_n }} </td>
-						<td> {{ value.eb_no }} </td>
-						<td> {{ value.l_m }} </td>	
-						<td> {{ value.time }} </td>
+						<td bgcolor="white"><div id="{{ value.ip}}:{{ value.port }}:index"> {{ loop.index }} </div></td>
+						<td> <a href="/receivers/{{ value.ip}}/{{ value.port }}"><div id="{{ value.ip}}:{{ value.port }}:ip"> {{ value.ip }} </div></a> </td>
+						<td><div id="{{ value.ip}}:{{ value.port }}:model"> {{ value.model }} </div></td>
+						<td><div id="{{ value.ip}}:{{ value.port }}:satellite"> {{ value.satellite  }} </div></td>
+						<td><div id="{{ value.ip}}:{{ value.port }}:port"> {{ value.port }} </div></td>
+						<td><div id="{{ value.ip}}:{{ value.port }}:c_n"> {{ value.c_n }} </div></td>
+						<td><div id="{{ value.ip}}:{{ value.port }}:eb_no"> {{ value.eb_no }} </div></td>
+						<td><div id="{{ value.ip}}:{{ value.port }}:l_m"> {{ value.l_m }} </div></td>	
+						<td><div id="{{ value.ip}}:{{ value.port }}:time"> {{ value.time }} </div></td>
 						<td bgcolor="white"> <a href="/statistics/{{ value.ip}}/{{ value.port }}/1"> Detail </a> </td>
 						<td bgcolor="white"> <a href="/api/v1.0/monitoring/{{ value.ip}}/{{ value.port }}/1"> Detail </a> </td>
-						<td bgcolor="white"> {{ value.service }} </td>
-						<td bgcolor="white"> {{ value.cc_delta }} </td>
+						<td bgcolor="white"><div id="{{ value.ip}}:{{ value.port }}:service"> {{ value.service }} </div></td>
+						<td bgcolor="white"><div id="{{ value.ip}}:{{ value.port }}:cc_delta"> {{ value.cc_delta }} </div></td>
 					</tr>
+					</div>
+					
 				</tbody>
 			{% endfor %}
 			</table>
-<!--			
+			
 <script>
-setTimeout(function(){
-    window.location.reload(true);
-}, 15000);
-</script> 
--->
+function update() {
+	$.ajax('/api/v1.0/monitoring/',   // request url
+		{
+		  // success callback Function       
+		  success: function (data, status, xhr) { 
+			   //$('div').append(data);
+			   //console.log("test")
+			   obj = JSON.parse(data);
+			   var max = Object.keys(obj).length;
+			   //console.log(max)
+			   for (var count = 0; count < max; count = count + 1){
+					//console.log(obj[count]["ip"])
+					var receiverId = obj[count]["ip"] + ":" + obj[count]["port"]
+					//console.log(receiverId)
+					if (document.getElementById(receiverId + ":" + "c_n") != null){
+						document.getElementById(receiverId + ":" + "c_n").innerHTML = obj[count]["c_n"]
+						document.getElementById(receiverId + ":" + "eb_no").innerHTML = obj[count]["eb_no"]
+						document.getElementById(receiverId + ":" + "l_m").innerHTML = obj[count]["l_m"]
+						document.getElementById(receiverId + ":" + "time").innerHTML = obj[count]["time"]
+						document.getElementById(receiverId + ":" + "service").innerHTML = obj[count]["service"]
+						document.getElementById(receiverId + ":" + "cc_delta").innerHTML = obj[count]["cc_delta"]
+					}
+			   }
+		}
+	});
+}
+
+let timerId= setInterval(() => update(), 30000);
+
+</script>
