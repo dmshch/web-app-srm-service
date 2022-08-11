@@ -38,7 +38,6 @@ def check_access():
 	if flask_login.current_user.get_id() == "monitor":
 		flash("You do not have permission to view this page.")
 		values = dbsqlalch.get_settings()
-		#return render_template('index.html', name='Main', time=get_time(), values= values)
 		return False
 
 @application.route('/login', methods=['GET', 'POST'])
@@ -68,23 +67,23 @@ def unauthorized_handler():
 @flask_login.login_required
 def main():
     values = dbsqlalch.get_settings()
-    return render_template('index.html', name = 'Main', time = get_time(), values = values)
-
-# 
+    return render_template('index.html', name = 'Main', values = values)
+ 
 @application.route('/monitoring/<satellite>')
 @flask_login.login_required
 def monitoring(satellite):
-    satellites = dbsqlalch.get_satellites()
-    name = satellite
-    if name == "all":
-        final_list = dbsqlalch.get_receivers(state = True)
-        name = "All"
-    else:
-        final_list = dbsqlalch.get_receivers(satellite = satellite, state = True)
-    final_list.sort(key = lambda final_list: final_list["ip"])
-    final_list.sort(key = lambda final_list: final_list["satellite"])
-    settings = dbsqlalch.get_settings()
-    return render_template('index.html', name = name, time = get_time(), final_list = final_list, settings = settings, satellites = satellites)
+	satellites = dbsqlalch.get_satellites()
+	name = satellite
+	if name == "all":
+		final_list = dbsqlalch.get_receivers(state = True)
+		name = "All"
+	else:
+		final_list = dbsqlalch.get_receivers(satellite = satellite, state = True)
+	name = "Monitoring"
+	final_list.sort(key = lambda final_list: final_list["ip"])
+	final_list.sort(key = lambda final_list: final_list["satellite"])
+	settings = dbsqlalch.get_settings()
+	return render_template('index.html', name = name, final_list = final_list, settings = settings, satellites = satellites, satellite = satellite)
 
 # API v1.0 - GET ALL
 @application.route('/api/v1.0/monitoring/')
@@ -119,7 +118,7 @@ def get_receivers():
     final_list = dbsqlalch.get_receivers()
     final_list.sort(key = lambda final_list: final_list["ip"])
     final_list.sort(key = lambda final_list: final_list["satellite"])
-    return render_template('index.html', name = 'Receivers', time=get_time(), list_of_receivers = final_list, satellites = satellites, types_of_receivers = types_of_receivers)
+    return render_template('index.html', name = 'Receivers', list_of_receivers = final_list, satellites = satellites, types_of_receivers = types_of_receivers)
 
 # Add new receiver
 @application.route('/receivers/add', methods = ['POST'])
@@ -139,7 +138,7 @@ def get_receiver(ip, port):
     message_tuple, receiver = dbsqlalch.get_receiver(ip, port)
     message, status = message_tuple
     flash(message, "normal" if status else "error")
-    return render_template('index.html', name='Edit', time=get_time(), receiver=receiver, satellites= satellites, types_of_receivers = types_of_receivers)
+    return render_template('index.html', name='Edit', receiver=receiver, satellites= satellites, types_of_receivers = types_of_receivers)
 
 # Update or delete receiver
 @application.route('/receivers/<ip>/<port>/<action>', methods = ['GET', 'POST'])
@@ -170,16 +169,16 @@ def plot_png(ip, port, time):
 @flask_login.login_required
 def settings_receivers_authentication():
 	if check_access() is False:
-		return render_template('index.html', name='Main', time=get_time(), values= dbsqlalch.get_settings())
+		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	path = "receivers"
 	values = dbsqlalch.get_receiver_authentication()
-	return render_template('index.html', name='Settings', time=get_time(), path=path, subname=path.capitalize(), values=values)	
+	return render_template('index.html', name='Settings', path=path, subname=path.capitalize(), values=values)	
 
 @application.route('/settings/receivers/update', methods=['POST'])
 @flask_login.login_required
 def settings_update_receivers_authentication():
 	if check_access() is False:
-		return render_template('index.html', name='Main', time=get_time(), values= dbsqlalch.get_settings())
+		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	message_tuple = dbsqlalch.set_receiver_authentication(request.form.get('receiver_select'), request.form['login'] ,request.form['password'])
 	if len(message_tuple) != 0:
 		message, status = message_tuple
@@ -190,16 +189,16 @@ def settings_update_receivers_authentication():
 @flask_login.login_required
 def settings_users():
 	if check_access() is False:
-		return render_template('index.html', name='Main', time=get_time(), values= dbsqlalch.get_settings())
+		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	path = "users"
 	values = dbsqlalch.get_user_authentication()
-	return render_template('index.html', name='Settings', time=get_time(), path=path, subname=path.capitalize(), values=values)
+	return render_template('index.html', name='Settings', path=path, subname=path.capitalize(), values=values)
 
 @application.route('/settings/users/update', methods=['POST'])
 @flask_login.login_required
 def settings_update_users():
 	if check_access() is False:
-		return render_template('index.html', name='Main', time=get_time(), values= dbsqlalch.get_settings())
+		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	message_tuple = dbsqlalch.set_user_authentication(request.form.get('user_select'), request.form['password'])
 	if len(message_tuple) != 0:
 		message, status = message_tuple
@@ -211,15 +210,15 @@ def settings_update_users():
 def settings_global():
 	path = "global"
 	if check_access() is False:
-		return render_template('index.html', name='Main', time=get_time(), values= dbsqlalch.get_settings())
+		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	values = dbsqlalch.get_settings()
-	return render_template('index.html', name='Settings', time=get_time(), path=path, subname=path.capitalize(), values=values)
+	return render_template('index.html', name='Settings', path=path, subname=path.capitalize(), values=values)
 
 @application.route('/settings/global/update', methods=['POST'])
 @flask_login.login_required
 def settings_update_global():
 	if check_access() is False:
-		return render_template('index.html', name='Main', time=get_time(), values= dbsqlalch.get_settings())
+		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	message_tuple = dbsqlalch.set_settings(request.form)
 	if len(message_tuple) != 0:
 		message, status = message_tuple
@@ -231,15 +230,15 @@ def settings_update_global():
 def settings_get_satellites():
 	path = "satellites"
 	if check_access() is False:
-		return render_template('index.html', name='Main', time=get_time(), values= dbsqlalch.get_settings())
+		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	values = dbsqlalch.get_satellites()
-	return render_template('index.html', name= 'Settings', time= get_time(), path= path, subname= path.capitalize(), values= values)
+	return render_template('index.html', name= 'Settings', path= path, subname= path.capitalize(), values= values)
 
 @application.route('/settings/satellites/add', methods=['POST'])
 @flask_login.login_required
 def settings_add_satellites():
 	if check_access() is False:
-		return render_template('index.html', name='Main', time=get_time(), values= dbsqlalch.get_settings())
+		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	message_tuple = dbsqlalch.add_satellite(request.form['satellite'])
 	if len(message_tuple) != 0:
 		message, status = message_tuple
@@ -250,7 +249,7 @@ def settings_add_satellites():
 @flask_login.login_required
 def settings_update_satellites():
 	if check_access() is False:
-		return render_template('index.html', name='Main', time=get_time(), values= dbsqlalch.get_settings())
+		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	message_tuple = dbsqlalch.update_satellite(request.form['oldsatellite'], request.form['newsatellite'])
 	if len(message_tuple) != 0:
 		message, status = message_tuple
@@ -261,12 +260,17 @@ def settings_update_satellites():
 @flask_login.login_required
 def settings_delete_satellites():
 	if check_access() is False:
-		return render_template('index.html', name='Main', time=get_time(), values= dbsqlalch.get_settings())
+		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	message_tuple = dbsqlalch.delete_satellite(request.form['satellite'])
 	if len(message_tuple) != 0:
 		message, status = message_tuple
 		flash(message, "normal" if status else "error")
 	return redirect('/settings/satellites/')
 
+@application.route('/time', methods=['GET'])
+@flask_login.login_required
+def time():
+	return ("Local time: " + datetime.datetime.now().strftime("%H:%M"))
+
 def get_time():
-    return datetime.datetime.now().strftime("%H:%M")
+    return ("Local time: " + datetime.datetime.now().strftime("%H:%M"))

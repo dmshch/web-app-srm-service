@@ -5,6 +5,8 @@
 	<title>Receivers monitoring</title>
 	<link rel="icon" href="/static/favicon.png" type="image/png">
 	<link rel="stylesheet" type="text/css" href="/static/css/style.css"/>
+	<script type="text/javascript" src="/static/scripts/jquery.js"></script>
+	<script type="text/javascript" src="/static/scripts/time.js"></script>
 </head>
 <body> 
 <header>
@@ -26,7 +28,7 @@
 							<li type="circle"><a href="/monitoring/all">Monitoring</a></li>	
 							<li type="circle"><a href="/receivers/">Receivers</a></li>
 							<li type="circle"><a href="/logout">Exit</a></li>
-							Locat time: {{time}}
+							<div id = "time"> </div>
 						</ul>
 					</td>
 
@@ -59,7 +61,7 @@
 		{% include 'edit.html' %}
 		{% elif name == 'Settings' %}
 		{% include 'settings.html' %}
-		{% else %}
+		{% elif name == 'Monitoring' %}
 		{% include 'monitoring.html' %}
 		{% endif %}
    </section>
