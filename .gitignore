@@ -8,9 +8,7 @@
 /__pycache__
 *.cfg
 test_classes_receivers.py
-static/css/
-static/js/
-static/scripts/
+jquery.js
 *.db
 run_script.sh
 how_to_run.txt

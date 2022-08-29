@@ -13,6 +13,7 @@ from web import users
 import flask_login
 import datetime
 import json
+import bcrypt
 
 application = Flask(__name__)
 
@@ -40,18 +41,21 @@ def check_access():
 		values = dbsqlalch.get_settings()
 		return False
 
+# HERE FOR CHECK LOGIN
 @application.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'GET':
-        return render_template('login.html')
-    if request.method == 'POST':
-        login  = request.form['login']
-        if request.form['password'] == users_dict[login]:
-            user = users.User()
-            user.id = login
-            flask_login.login_user(user)
-            return redirect(url_for('main'))
-    return redirect(url_for('login'))
+	if request.method == 'GET':
+		return render_template('login.html')
+	if request.method == 'POST' and request.form['login'] != "" and request.form['password'] != "":
+		login  = request.form['login']
+		password = request.form['password']
+		if bcrypt.checkpw(password.encode("utf-8"), bytes(users_dict[login].encode("utf-8"))):
+			#print("Cheked!")
+			user = users.User()
+			user.id = login
+			flask_login.login_user(user)
+			return redirect(url_for('main'))
+	return redirect(url_for('login'))
 
 @application.route('/logout')
 def logout():
@@ -67,7 +71,7 @@ def unauthorized_handler():
 @flask_login.login_required
 def main():
     values = dbsqlalch.get_settings()
-    return render_template('index.html', name = 'Main', values = values)
+    return render_template('index.html', name = 'Main', values = values, user = flask_login.current_user.get_id())
  
 @application.route('/monitoring/<satellite>')
 @flask_login.login_required
@@ -83,7 +87,7 @@ def monitoring(satellite):
 	final_list.sort(key = lambda final_list: final_list["ip"])
 	final_list.sort(key = lambda final_list: final_list["satellite"])
 	settings = dbsqlalch.get_settings()
-	return render_template('index.html', name = name, final_list = final_list, settings = settings, satellites = satellites, satellite = satellite)
+	return render_template('index.html', name = name, final_list = final_list, settings = settings, satellites = satellites, satellite = satellite, user = flask_login.current_user.get_id())
 
 # API v1.0 - GET ALL
 @application.route('/api/v1.0/monitoring/')
@@ -118,7 +122,7 @@ def get_receivers():
     final_list = dbsqlalch.get_receivers()
     final_list.sort(key = lambda final_list: final_list["ip"])
     final_list.sort(key = lambda final_list: final_list["satellite"])
-    return render_template('index.html', name = 'Receivers', list_of_receivers = final_list, satellites = satellites, types_of_receivers = types_of_receivers)
+    return render_template('index.html', name = 'Receivers', list_of_receivers = final_list, satellites = satellites, types_of_receivers = types_of_receivers, user = flask_login.current_user.get_id())
 
 # Add new receiver
 @application.route('/receivers/add', methods = ['POST'])
@@ -138,7 +142,7 @@ def get_receiver(ip, port):
     message_tuple, receiver = dbsqlalch.get_receiver(ip, port)
     message, status = message_tuple
     flash(message, "normal" if status else "error")
-    return render_template('index.html', name='Edit', receiver=receiver, satellites= satellites, types_of_receivers = types_of_receivers)
+    return render_template('index.html', name='Edit', receiver=receiver, satellites= satellites, types_of_receivers = types_of_receivers, user = flask_login.current_user.get_id())
 
 # Update or delete receiver
 @application.route('/receivers/<ip>/<port>/<action>', methods = ['GET', 'POST'])
@@ -172,7 +176,7 @@ def settings_receivers_authentication():
 		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	path = "receivers"
 	values = dbsqlalch.get_receiver_authentication()
-	return render_template('index.html', name='Settings', path=path, subname=path.capitalize(), values=values)	
+	return render_template('index.html', name='Settings', path=path, subname=path.capitalize(), values=values, user = flask_login.current_user.get_id())	
 
 @application.route('/settings/receivers/update', methods=['POST'])
 @flask_login.login_required
@@ -192,7 +196,7 @@ def settings_users():
 		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	path = "users"
 	values = dbsqlalch.get_user_authentication()
-	return render_template('index.html', name='Settings', path=path, subname=path.capitalize(), values=values)
+	return render_template('index.html', name='Settings', path=path, subname=path.capitalize(), values=values, user = flask_login.current_user.get_id())
 
 @application.route('/settings/users/update', methods=['POST'])
 @flask_login.login_required
@@ -212,7 +216,7 @@ def settings_global():
 	if check_access() is False:
 		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	values = dbsqlalch.get_settings()
-	return render_template('index.html', name='Settings', path=path, subname=path.capitalize(), values=values)
+	return render_template('index.html', name='Settings', path=path, subname=path.capitalize(), values=values, user = flask_login.current_user.get_id())
 
 @application.route('/settings/global/update', methods=['POST'])
 @flask_login.login_required
@@ -232,7 +236,7 @@ def settings_get_satellites():
 	if check_access() is False:
 		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	values = dbsqlalch.get_satellites()
-	return render_template('index.html', name= 'Settings', path= path, subname= path.capitalize(), values= values)
+	return render_template('index.html', name= 'Settings', path= path, subname= path.capitalize(), values= values, user = flask_login.current_user.get_id())
 
 @application.route('/settings/satellites/add', methods=['POST'])
 @flask_login.login_required
