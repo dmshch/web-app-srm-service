@@ -6,3 +6,5 @@ WebAppSrmService - a web application based Flask (Python 3). The service display
 * C/N (dB)
 * Eb/NO(dB)
 * Link Margin (dB)
+* Program Number for output (SDI and IP)
+* CC Errors for output services, delta between updates (Δ)(for ProView 7100 old firmware < 4.0 - N/A)

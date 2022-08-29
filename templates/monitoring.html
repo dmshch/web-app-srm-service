@@ -62,8 +62,8 @@
 						<td><div id="{{ value.ip}}:{{ value.port }}:eb_no"> {{ value.eb_no }} </div></td>
 						<td><div id="{{ value.ip}}:{{ value.port }}:l_m"> {{ value.l_m }} </div></td>	
 						<td><div id="{{ value.ip}}:{{ value.port }}:time"> {{ value.time }} </div></td>
-						<td bgcolor="white"> <a href="/statistics/{{ value.ip}}/{{ value.port }}/1"> Detail </a> </td>
-						<td bgcolor="white"> <a href="/api/v1.0/monitoring/{{ value.ip}}/{{ value.port }}/1"> Detail </a> </td>
+						<td bgcolor="white"> <a href="/statistics/{{ value.ip}}/{{ value.port }}/1" target="_blank"> Detail </a> </td>
+						<td bgcolor="white"> <a href="/api/v1.0/monitoring/{{ value.ip}}/{{ value.port }}/1" target="_blank"> Detail </a> </td>
 						<td bgcolor="white"><div id="{{ value.ip}}:{{ value.port }}:service"> {{ value.service }} </div></td>
 						<td bgcolor="white"><div id="{{ value.ip}}:{{ value.port }}:cc_delta"> {{ value.cc_delta }} </div></td>
 					</tr>
@@ -87,7 +87,7 @@ function update() {
 			   for (var count = 0; count < max; count = count + 1){
 					//console.log(obj[count]["ip"])
 					var receiverId = obj[count]["ip"] + ":" + obj[count]["port"]
-					//console.log(receiverId)
+					//check that receiverId is exists on the page
 					if (document.getElementById(receiverId + ":" + "c_n") != null){
 						document.getElementById(receiverId + ":" + "c_n").innerHTML = obj[count]["c_n"]
 						document.getElementById(receiverId + ":" + "eb_no").innerHTML = obj[count]["eb_no"]

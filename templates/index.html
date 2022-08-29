@@ -40,6 +40,7 @@
 							<li type="circle"><a href="/settings/users">Users</a></li>
 							<li type="circle"><a href="/settings/receivers">Receivers</a></li>
 							<li type="circle"><a href="/settings/satellites/">Satellites</a></li>
+							<div id = "user">You're logged as <b>{{ user }}</b></div>
 						</ul>
 					</td>
 					
@@ -51,7 +52,7 @@
 </header>
 <main>
 <section>
-    <h3>{{name}}</h3>
+    <h3><font color="black">Current section: {{name}}</font></h3>
     <!-- -->
 		{% if name == 'Main' %}
 		{% include 'main.html' %}

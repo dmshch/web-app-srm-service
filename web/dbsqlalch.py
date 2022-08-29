@@ -3,6 +3,7 @@
 import sqlalchemy as sa
 import ipaddress
 import uuid
+import bcrypt
 # Statistic
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -48,8 +49,9 @@ def get_user_authentication():
 def set_user_authentication(login, password):
     status = ()
     if login != None and password != "":
+        hashed = bcrypt.hashpw(bytes(password.encode("utf-8")), bcrypt.gensalt())
         user = session.query(User).filter_by(login = login).first()
-        user.password = password
+        user.password = hashed.decode("utf-8")
         session.commit()
         session.close()
     if login == None:
