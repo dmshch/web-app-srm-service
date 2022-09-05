@@ -1,13 +1,19 @@
 <a href="/monitoring/all">Back to monitoring</a>
 <br>
-Last: <a href="/statistics/{{ ip}}/{{ port }}/1">1 hour</a>,
-<a href="/statistics/{{ip}}/{{ port }}/6"/>6 hours</a>,
-<a href="/statistics/{{ip}}/{{ port }}/12">12 hours</a>,
-<a href="/statistics/{{ip}}/{{ port }}/24">24 hours</a>,
-<a href="/statistics/{{ip}}/{{ port }}/0">all time</a>.
+Last: <a href="/statistics/{{ ip}}/{{ port }}/1/0">1 hour</a>,
+<a href="/statistics/{{ip}}/{{ port }}/6/0"/>6 hours</a>,
+<a href="/statistics/{{ip}}/{{ port }}/12/0">12 hours</a>,
+<a href="/statistics/{{ip}}/{{ port }}/24/0">24 hours</a>,
+<a href="/statistics/{{ip}}/{{ port }}/0/0">all time</a>.
+
+<form action="/statistics/{{ ip}}/{{ port }}/0/0" method="post">
+	<p>From: <input type="date" id="date_from" name="date_from" min="{{ min_date }}" max="{{ max_date }}"/> and to: <input type="date" id="date_to" name="date_to" min="{{ min_date }}" max="{{ max_date }}"/>
+	<button type="submit"> Show </button>
+	</p>
+</form>
 
 <h3>Statistic for receiver with ip="{{ ip }}", port ="{{ port }}", satellite ="{{ satellite }}"</h3>
-    <img src="/matplot-as-image-{{ip}}-{{port}}-{{time}}.png"
+    <img src="/matplot-as-image-{{ip}}-{{port}}-{{start_time}}-{{end_time}}.png"
          alt="Plot for receiver, ip={{ ip }}, port ={{ port }}
          height="200"
     >

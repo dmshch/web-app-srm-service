@@ -159,14 +159,27 @@ def modify_receiver(ip, port, action):
         flash(message, "normal" if status else "error")
     return redirect(url_for('get_receivers'))
 
-# Statistics
-@application.route('/statistics/<ip>/<port>/<time>', methods = ['GET'])
-def get_statistics(ip, port, time):
-    return render_template('plot.html', ip = ip, port = port, time = time, satellite = dbsqlalch.get_receiver(ip, port)[1]['satellite'])
+# Statistics fixed
+@application.route('/statistics/<ip>/<port>/<start_time>/<end_time>', methods = ['GET', 'POST'])
+def get_statistics(ip, port, start_time, end_time):
+    current_time = datetime.datetime.now()
+    delta = datetime.timedelta(days = 31)
+    min_date = (current_time - delta).strftime("%Y-%m-%d")
+    max_date = current_time.strftime("%Y-%m-%d")
+    #min_date = "2022-09-01"
+    #max_date = "2022-09-05"
+    if request.method == 'GET':
+        return render_template('plot.html', min_date = min_date, max_date = max_date, ip = ip, port = port, start_time = start_time, end_time = end_time, satellite = dbsqlalch.get_receiver(ip, port)[1]['satellite'])
+    if request.method == 'POST':
+        print(request.form['date_from'])
+        print(request.form['date_to'])
+        return render_template('plot.html', min_date = min_date, max_date = max_date, ip = ip, port = port, start_time = request.form['date_from'].replace("-", "."), end_time = request.form['date_to'].replace("-", "."), satellite = dbsqlalch.get_receiver(ip, port)[1]['satellite'])
 
-@application.route("/matplot-as-image-<ip>-<port>-<time>.png")
-def plot_png(ip, port, time):
-    data = dbsqlalch.get_stats(ip, port, time)
+# PLOT, PNG
+@application.route("/matplot-as-image-<ip>-<port>-<start_time>-<end_time>.png")
+def plot_png(ip, port, start_time, end_time):
+    #print("IN # PLOT, PNG " + start_time + " " + end_time)
+    data = dbsqlalch.get_stats(ip, port, start_time, end_time)
     return Response(data, mimetype='image/png')
 
 @application.route('/settings/receivers', methods=['GET'])
