@@ -339,9 +339,11 @@ def get_stats_for_api(ip, port, time):
     FigureCanvasAgg(fig).print_png(output)
     return output.getvalue()
 
-def get_stats(ip, port, time):
-
-    c_n, eb_no, date_time = prepare_data_for_plots(ip, port, time)
+def get_stats(ip, port, start_time, end_time):
+    if end_time == "0":
+        c_n, eb_no, date_time = prepare_data_for_plots(ip, port, start_time)
+    else:
+        c_n, eb_no, date_time = prepare_data_for_plots(ip, port, start_time, end_time)
 
     # Make the plot
     fig, ax = plt.subplots(figsize=(10, 2.7), layout='constrained')  # Create a figure containing a single axes.
@@ -356,10 +358,12 @@ def get_stats(ip, port, time):
     ax.plot(date_time, c_n, label='C/N')  # Plot some data on the axes.
     ax.plot(date_time, eb_no, label='Eb/NO')  # Plot more data on the axes...
     #ax.plot(date_time, l_m, label='Link Margin')  # ... and some more.
-    if time == 0:
+    if start_time == "0" and end_time == "0":
         time_desc = "Time (all saved data)"
+    elif start_time != "0" and end_time == "0":
+        time_desc = "Time, last " + start_time + " hour(s)"
     else:
-        time_desc = "Time, last " + str(time) + " hour(s)"
+        time_desc = "From " + start_time + " 00:00:00" + " to " + end_time + " 23:59:59"
     ax.set_xlabel(time_desc)  # Add an x-label to the axes.
     ax.set_ylabel('Values (dB)')  # Add a y-label to the axes.
     ax.set_title("ip:" + ip + " port:" + port)  # Add a title to the axes.
@@ -369,8 +373,7 @@ def get_stats(ip, port, time):
     FigureCanvasAgg(fig).print_png(output)
     return output.getvalue()
 
-def prepare_data_for_plots(ip, port, time):
-    time = int(time)
+def prepare_data_for_plots(ip, port, start_time, end_time = None):
     # Lists for plot
     #Y scale
     c_n = []
@@ -378,15 +381,28 @@ def prepare_data_for_plots(ip, port, time):
     # X scale
     date_time = []
 
-    time_interval = int(time)
-    current_time = datetime.now()
-
-    if time != 0:
+    # Get 1, 6, 12, 24 hours
+    if start_time != "0" and end_time is None:
+        time_interval = int(start_time)
+        current_time = datetime.now()
         delta = timedelta(hours = time_interval)
         limit = (current_time - delta).isoformat()
         stats = session.query(Stat).filter(Stat.ip==ip).filter(Stat.port==port).filter(Stat.date_time>=limit).order_by(Stat.date_time).all()
-    elif time == 0:
+    # Get 1 month
+    elif start_time == "0":
         stats = session.query(Stat).filter(Stat.ip==ip).filter(Stat.port==port).order_by(Stat.date_time).all()
+    # Get interval
+    elif start_time != "0" and end_time is not None:
+        if start_time == end_time:
+            # For one day, from 00.00 am. to 11.59 pm.
+            high = datetime.strptime(end_time + ".23.59.59", "%Y.%m.%d.%H.%M.%S").isoformat()
+            low = datetime.strptime(start_time + ".00.00.00", "%Y.%m.%d.%H.%M.%S").isoformat()
+            stats = session.query(Stat).filter(Stat.ip==ip).filter(Stat.port==port).filter(Stat.date_time>=low).filter(Stat.date_time<=high).order_by(Stat.date_time).all()
+        else:
+            high = datetime.strptime(end_time, "%Y.%m.%d").isoformat()
+            low = datetime.strptime(start_time, "%Y.%m.%d").isoformat()
+            stats = session.query(Stat).filter(Stat.ip==ip).filter(Stat.port==port).filter(Stat.date_time>=low).filter(Stat.date_time<=high).order_by(Stat.date_time).all()
+    
     for row in stats:
         try:
             c_n.append(float(row.c_n))
