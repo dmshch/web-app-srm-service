@@ -36,24 +36,23 @@
 			{% for value in final_list %}
 				<tbody>
 					
-					<div id="{{ value.ip}}:{{ value.port }}">
+				  <div id="{{ value.ip}}:{{ value.port }}">
+				  
 					{% if value.alarm == "alarm_medium" %}
-					<tr bgcolor="{{ settings.alarm_medium }}">
-					
+					<tr id="{{ value.ip}}:{{ value.port }}:color" style="background-color:{{ settings.alarm_medium }}">
 					{% elif value.alarm == "alarm_critical" %}
-					<tr bgcolor="{{ settings.alarm_critical }}">
-					
+					<tr id="{{ value.ip}}:{{ value.port }}:color" style="background-color:{{ settings.alarm_critical }}">
 					{% elif value.alarm == "alarm_high" %}
-					<tr bgcolor="{{ settings.alarm_high }}">
-					
+					<tr id="{{ value.ip}}:{{ value.port }}:color" style="background-color:{{ settings.alarm_high }}">
 					{% elif value.alarm == "alarm_low" %}
-					<tr bgcolor="{{ settings.alarm_low }}">
-					
+					<tr id="{{ value.ip}}:{{ value.port }}:color" style="background-color:{{ settings.alarm_low }}">
 					{% elif value.alarm == "alarm_normal" %}
-					<tr bgcolor="{{ settings.alarm_normal }}">
+					<tr id="{{ value.ip}}:{{ value.port }}:color" style="background-color:{{ settings.alarm_normal }}">
+					  {% endif %}
 					
-					{% endif %}
-						<td bgcolor="white"><div id="{{ value.ip}}:{{ value.port }}:index"> {{ loop.index }} </div></td>
+					<!--tr id="{{ value.ip}}:{{ value.port }}:color" -->
+					  
+						<td><div id="{{ value.ip}}:{{ value.port }}:index"> {{ loop.index }} </div></td>
 						<td> <a href="/receivers/{{ value.ip}}/{{ value.port }}"><div id="{{ value.ip}}:{{ value.port }}:ip"> {{ value.ip }} </div></a> </td>
 						<td><div id="{{ value.ip}}:{{ value.port }}:model"> {{ value.model }} </div></td>
 						<td><div id="{{ value.ip}}:{{ value.port }}:satellite"> {{ value.satellite  }} </div></td>
@@ -94,7 +93,9 @@ function update() {
 						document.getElementById(receiverId + ":" + "l_m").innerHTML = obj[count]["l_m"]
 						document.getElementById(receiverId + ":" + "time").innerHTML = obj[count]["time"]
 						document.getElementById(receiverId + ":" + "service").innerHTML = obj[count]["service"]
-						document.getElementById(receiverId + ":" + "cc_delta").innerHTML = obj[count]["cc_delta"]
+					        document.getElementById(receiverId + ":" + "cc_delta").innerHTML = obj[count]["cc_delta"]
+					        document.getElementById(receiverId + ":" + "color").style.backgroundColor = obj[count]["alarm_color"]
+					        //document.getElementById(receiverId + ":" + "color").setAttribute('style', 'background-color:' +  obj[count]["alarm_color"])
 					}
 			   }
 		}

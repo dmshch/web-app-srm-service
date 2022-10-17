@@ -18,9 +18,9 @@
 			
 				{% if path == "global" %}
 			<form action="/settings/global/update" method="post">	
-					<h4>Period of update:</h4>
+					<!--h4>Period of update:</h4>
 					<input type="text"  id="time" placeholder="{{ values['period'] }}" name="time" disabled>
-					<label for="time"> - reception parameters update period (integer value).</label>
+					<label for="time"> - reception parameters update period (integer value).</label-->
 						
 					<h4>Boundary values for C/N and Eb/NO:</h4>
 					<input type="text" id="c_n_boundary" placeholder="{{ values['c_n_boundary'] }}" name="c_n_boundary">
@@ -64,24 +64,6 @@
 			
 				{% elif path == "users" %}
 			<form action="/settings/users/update" method="post">	
-					<h4>Current values:</h4>
-					
-					<table>
-						<thead>
-							<tr>
-								<th> Login </th>
-								<th> Password </th>		
-							</tr>
-						</thead>
-						{% for key,value in values.items() %}
-						<tbody>
-							<tr>
-								<td bgcolor="#afdafc"> {{ key }} </td>
-								<!--td bgcolor="#7dc4fa"> {{ value }} </td-->	
-							</tr>
-						</tbody>
-						{% endfor %}
-					</table>
 				
 				<h4>Users passwords:</h4>
 					
