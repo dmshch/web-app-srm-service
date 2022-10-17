@@ -4,6 +4,7 @@ import sqlalchemy as sa
 import ipaddress
 import uuid
 import bcrypt
+import logging
 # Statistic
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -233,7 +234,6 @@ def add_receiver(ip, model, satellite, login, password, port, state):
         else:
             status =  ("IP and port exists.", False)
     except BaseException as err:
-        #print("here", err)
         status = ("An error occurred while adding the receiver.", False)
     session.close()
     return status
@@ -250,7 +250,6 @@ def get_receiver(ip, port):
             d = check_value(d, c_n_boundary, eb_no_boundary)
         status = ("", True)
     except BaseException as err:
-        #print(err)
         status = ("An error occurred while getting the data from DB.", False)
     return (status, d)
 
@@ -263,7 +262,6 @@ def update_receiver(ip, model, satellite, login, password, port, state):
     # Get guide from satellite
     guid_sat = list(get_satellites(name = satellite).items())[0][0]
     guid_mod = get_receiver_authentication(model = model)[model][2]
-    print(guid_sat, guid_mod)
     receiver = session.query(Receiver).filter(Receiver.ip==ip).filter(Receiver.port==port).first()
     try:
         if login != "" and password != "":
@@ -292,7 +290,6 @@ def delete_receiver(ip, port):
         session.commit()
         status = ("Receiver has been deleted", True)
     except BaseException as err:
-        #print(err)
         status = ("An error occurred while deleting the receiver.",False)
     session.close()
     return status
@@ -413,12 +410,10 @@ def prepare_data_for_plots(ip, port, start_time, end_time = None):
                 c_n.append(0)
                 eb_no.append(0)
                 date_time.append(row.date_time)
-                #print(err)
                 continue
             elif row.c_n == "connection error" or row.eb_no == "connection error":
                 c_n.append(-1)
                 eb_no.append(-1)
                 date_time.append(row.date_time)
-                #print(err)
                 continue
     return (c_n, eb_no, date_time)

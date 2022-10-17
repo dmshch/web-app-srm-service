@@ -50,7 +50,6 @@ def login():
 		login  = request.form['login']
 		password = request.form['password']
 		if bcrypt.checkpw(password.encode("utf-8"), bytes(users_dict[login].encode("utf-8"))):
-			#print("Cheked!")
 			user = users.User()
 			user.id = login
 			flask_login.login_user(user)
@@ -93,10 +92,11 @@ def monitoring(satellite):
 @application.route('/api/v1.0/monitoring/')
 def api_monitoring():
     in_list = dbsqlalch.get_receivers(state = True)
+    settings_dict = dbsqlalch.get_settings()
     for item in in_list:
         [item.pop(key) for key in ['login', 'password', 'state', 'guid']]
+        item['alarm_color'] = settings_dict[item['alarm']]
     out_json = json.dumps(in_list)
-    print(str(out_json))
     return str(out_json)
 
 # API v1.0 - GET ONE
@@ -166,19 +166,14 @@ def get_statistics(ip, port, start_time, end_time):
     delta = datetime.timedelta(days = 31)
     min_date = (current_time - delta).strftime("%Y-%m-%d")
     max_date = current_time.strftime("%Y-%m-%d")
-    #min_date = "2022-09-01"
-    #max_date = "2022-09-05"
     if request.method == 'GET':
         return render_template('plot.html', min_date = min_date, max_date = max_date, ip = ip, port = port, start_time = start_time, end_time = end_time, satellite = dbsqlalch.get_receiver(ip, port)[1]['satellite'])
     if request.method == 'POST':
-        print(request.form['date_from'])
-        print(request.form['date_to'])
         return render_template('plot.html', min_date = min_date, max_date = max_date, ip = ip, port = port, start_time = request.form['date_from'].replace("-", "."), end_time = request.form['date_to'].replace("-", "."), satellite = dbsqlalch.get_receiver(ip, port)[1]['satellite'])
 
 # PLOT, PNG
 @application.route("/matplot-as-image-<ip>-<port>-<start_time>-<end_time>.png")
 def plot_png(ip, port, start_time, end_time):
-    #print("IN # PLOT, PNG " + start_time + " " + end_time)
     data = dbsqlalch.get_stats(ip, port, start_time, end_time)
     return Response(data, mimetype='image/png')
 
@@ -208,8 +203,8 @@ def settings_users():
 	if check_access() is False:
 		return render_template('index.html', name='Main', values= dbsqlalch.get_settings())
 	path = "users"
-	values = dbsqlalch.get_user_authentication()
-	return render_template('index.html', name='Settings', path=path, subname=path.capitalize(), values=values, user = flask_login.current_user.get_id())
+	#values = dbsqlalch.get_user_authentication()
+	return render_template('index.html', name='Settings', path=path, subname=path.capitalize(), user = flask_login.current_user.get_id())
 
 @application.route('/settings/users/update', methods=['POST'])
 @flask_login.login_required
