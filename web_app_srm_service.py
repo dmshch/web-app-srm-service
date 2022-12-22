@@ -36,10 +36,10 @@ def user_loader(login):
     return user
 
 def check_access():
-	if flask_login.current_user.get_id() == "monitor":
-		flash("You do not have permission to view this page.")
-		values = dbsqlalch.get_settings()
-		return False
+     if flask_login.current_user.get_id() == "monitor":
+          flash("You do not have permission to view this page.")
+          values = dbsqlalch.get_settings()
+          return False
 
 # HERE FOR CHECK LOGIN
 @application.route('/login', methods=['GET', 'POST'])
@@ -75,18 +75,18 @@ def main():
 @application.route('/monitoring/<satellite>')
 @flask_login.login_required
 def monitoring(satellite):
-	satellites = dbsqlalch.get_satellites()
-	name = satellite
-	if name == "all":
-		final_list = dbsqlalch.get_receivers(state = True)
-		name = "All"
-	else:
-		final_list = dbsqlalch.get_receivers(satellite = satellite, state = True)
-	name = "Monitoring"
-	final_list.sort(key = lambda final_list: final_list["ip"])
-	final_list.sort(key = lambda final_list: final_list["satellite"])
-	settings = dbsqlalch.get_settings()
-	return render_template('index.html', name = name, final_list = final_list, settings = settings, satellites = satellites, satellite = satellite, user = flask_login.current_user.get_id())
+     satellites = dbsqlalch.get_satellites()
+     name = satellite
+     if name == "all":
+          final_list = dbsqlalch.get_receivers(state = True)
+          name = "All"
+     else:
+          final_list = dbsqlalch.get_receivers(satellite = satellite, state = True)
+     name = "Monitoring"
+     final_list.sort(key = lambda final_list: final_list["ip"])
+     final_list.sort(key = lambda final_list: final_list["satellite"])
+     settings = dbsqlalch.get_settings()
+     return render_template('index.html', name = name, final_list = final_list, settings = settings, satellites = satellites, satellite = satellite, user = flask_login.current_user.get_id())
 
 # API v1.0 - GET ALL
 @application.route('/api/v1.0/monitoring/')
