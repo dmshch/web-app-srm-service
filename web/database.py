@@ -14,7 +14,7 @@ except FileNotFoundError:
     
 path = data["dialect"] + "+" + data["driver"] + "://" + data["user"] + ":" + data["password"] + "@" + data["host"] + ":" + data["port"] + "/" + data["dbname"]
     
-engine = sa.create_engine(path)
+engine = sa.create_engine(path, pool_size=10, max_overflow=20)
 
 SessionLocal = sessionmaker(autocommit = False, autoflush = False, bind = engine)
 
